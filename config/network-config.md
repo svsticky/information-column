@@ -1,8 +1,8 @@
 # Network configuration
 
-One of the most peculiar requirements for the server that has to connect to the zuil, is its network configuration. After many attempts using a as-default-as-possible configuration, all the below settings were necessary for the system to successfully connect to the zuil and send it new contents for its matrix display.
+One of the most peculiar requirements for the server that has to connect to the information column, is its network configuration. After many attempts using a as-default-as-possible configuration, all the below settings were necessary for the system to successfully connect to the information column and send it new contents for its matrix display.
 
-The IP address of the zuil itself is more-or-less hard coded to be `131.211.83.245` (`infozuil.students.cs.uu.nl` also resolves to this).
+The IP address of the information column itself is more-or-less hard coded to be `131.211.83.245` (`infozuil.students.cs.uu.nl` also resolves to this).
 
 ## /etc/network/interfaces
 ```
@@ -30,6 +30,6 @@ wpa-ssid <ssid>
 
 iface default inet dhcp
 ```
-The IP addresses associated with eth0 should not be changed, unless the configuration of the zuil itself is changed accordingly.
+The IP addresses associated with eth0 should not be changed, unless the configuration of the information column itself is changed accordingly.
 Also, a local WLAN router is assumed at 10.0.1.1, that accepts static IP's in the 10.0.0/24 range.
 Note that the wireless SSID and WPA key still has to be filled in.
