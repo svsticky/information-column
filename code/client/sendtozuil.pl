@@ -72,7 +72,7 @@ while (<>)
 
 print $remote "${syn}${cr}";
 sleep(10);
-print "sendscript done\n";
+print "done sending to zuil\n";
 
 # print $remote "${syn}${soh} ${fs}";
 # print $remote "0All your base${fs}";

@@ -18,4 +18,4 @@ open (MYFILE, ">:encoding(UTF-8)", $path);
 
 close (MYFILE);
 
-print "\ngetStickyunit done\n\n";
+print "\ngetDone getting text\n\n";
