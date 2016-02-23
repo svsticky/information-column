@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
-import ConfigParser;
-Config = ConfigParser.ConfigParser();
+import configparser;
+Config = configparser.ConfigParser();
 Config.read("./settings/main.cfg"); # Read the configuration file
 def ConfigSectionMap(section): # Get the keys of a certain section
     dict1 = {} # Initialize the dictionary
@@ -22,7 +22,7 @@ address = int(ConfigSectionMap("ConnectionInfo")['address']) # Get the address o
 def ValueCharacter(value):
     return chr(value+32)
 
-print "Connecting to %s controller on port %s" % (ip, address)
+print("Connecting to {0} controller on port {1}".format(ip, address))
 
 # Define standard values for the protocol.
 soh = chr(1)  # Start of Heading
@@ -64,7 +64,7 @@ def BetterReadtime(value):
     valC = value/16;
     value %= 16;
     valD = value;
-    
+
     return Readtime(valA, valB, valC, valD);
 
 def Brightness(value):
