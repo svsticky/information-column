@@ -1,59 +1,59 @@
 {
-  pages: [{
-    lines: [
-      '        Welkom bij Sticky.',
-      ' Uw bron voor koekjes, koffie en',
-      '         hulp bij practica',
-      '',
-      '',
-      '',
-      'Laatste update:',
-      '             11-11-2014 12:00:39'
+  "pages": [{
+    "lines": [
+      "        Welkom bij Sticky.",
+      " Uw bron voor koekjes, koffie en",
+      "         hulp bij practica",
+      "",
+      "",
+      "",
+      "Laatste update:",
+      "             11-11-2014 12:00:39"
     ],
-    time: 2,
-    blink: 5,
-    schedular: {
-      year: 2014,
-      month: 11,
-      day: 11,
-      hours: 14,
-      minutes: 10,
-      seconds: 50
+    "time": 10012,
+    "blink": 5,
+    "schedular": {
+      "year": 2014,
+      "month": 11,
+      "day": 11,
+      "hours": 14,
+      "minutes": 10,
+      "seconds": 50
     },
-    brightness: 2,
-    scroll: 1,
-    fading: 0,
-    moving: {
-      speed: 10,
-      width: 2
+    "brightness": 2,
+    "scroll": 1,
+    "fading": 0,
+    "moving": {
+      "speed": 10,
+      "width": 2
     }
   }, {
-    lines: [
-      '----- Komende Activiteiten -----',
-      'Borrel',
-      '             12-11-2014 17:00:00',
-      'Lasergamen [Mastercom]',
-      '             12-11-2014 19:30:00',
-      'Dining In The Dark',
-      '             14-11-2014 13:00:00',
-      ''
+    "lines": [
+      "----- Komende Activiteiten -----",
+      "Borrel",
+      "             12-11-2014 17:00:00",
+      "Lasergamen [Mastercom]",
+      "             12-11-2014 19:30:00",
+      "Dining In The Dark",
+      "             14-11-2014 13:00:00",
+      ""
     ],
-    time: 2,
-    blink: 5,
-    schedular: {
-      year: 2014,
-      month: 11,
-      day: 11,
-      hours: 14,
-      minutes: 10,
-      seconds: 50
+    "time": 10012,
+    "blink": 5,
+    "schedular": {
+      "year": 2014,
+      "month": 11,
+      "day": 11,
+      "hours": 14,
+      "minutes": 10,
+      "seconds": 50
     },
-    brightness: 2,
-    scroll: 1,
-    fading: 0,
-    moving: {
-      speed: 10,
-      width: 2
+    "brightness": 2,
+    "scroll": 1,
+    "fading": 0,
+    "moving": {
+      "speed": 10,
+      "width": 2
     }
   }]
 }
