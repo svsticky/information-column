@@ -6,19 +6,6 @@ from math import floor;
 
 Config = configparser.ConfigParser();
 
-def ConfigSectionMap(section): # Get the keys of a certain section
-    dict1 = {} # Initialize the dictionary
-    options = Config.options(section) # Get the options
-    for option in options: # foreach option
-        try:
-            dict1[option] = Config.get(section, option) # set the key to this value
-            if dict1[option] == -1:
-                DebugPrint("skip: %s" % option)
-        except:
-            print("exception on %s!" % option)
-            dict1[option] = None
-    return dict1
-
 def ValueCharacter(value):
     return chr(value+32)
 
@@ -49,8 +36,8 @@ def main(argv):
     with open(file) as data_file:
         data = json.load(data_file)
 
-    ip = ConfigSectionMap("ConnectionInfo")['server'] # get the IP on which to connect
-    address = int(ConfigSectionMap("ConnectionInfo")['address']) # Get the address of the controller
+    ip = Config["ConnectionInfo"]['server'] # get the IP on which to connect
+    address = int(Config["ConnectionInfo"]['address']) # Get the address of the controller
 
     print("Attempting to connect to {0} controller on port {1}".format(ip, address))
 
@@ -117,8 +104,16 @@ def BetterReadtime(value):
     return Readtime(int(valA), int(valB), int(valC), int(valD));
 
 def TimeValue(value):
-    for char in value:
-        print(int(char));
+    i = len(value)-1
+    ii = 0
+    s = 0;
+    while i >= 0:
+        s += pow(16, ii) * (ord(value[i])-32)
+        i -=1;
+        ii += 1
+        pass
+    print(s)
+    return s
 
 def Brightness(value):
     v = int(value);
