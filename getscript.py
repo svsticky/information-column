@@ -2,14 +2,18 @@
 Loads the upcoming activities from Koala and outputs them in json.
 '''
 from __future__ import print_function
-import logging
+import datetime
 import json
+import logging
 import requests
 
 
 LINE_WIDTH = 32
+TOP_LINE = '----- Komende Activiteiten -----'
 API_URL = 'https://koala.svsticky.nl/api/activities'
 
+ALIGN_RIGHT = '>' + str(LINE_WIDTH)
+DATETIME_FORMAT = '%d-%m-%Y %X'
 def get_activities():
     '''
     Retrieve upcoming activities and return a list of (name, start_date) tuples.
@@ -21,7 +25,8 @@ def get_activities():
         logging.critical('Failed to connect: %s', ex)
         return []
     if response.status_code != 200:
-        logging.error('Could not retrieve activities: %s', response.status_code)
+        logging.error('Could not retrieve activities: %s',
+                      response.status_code)
         logging.error('Response content: %s', response.text)
         return []
 
@@ -41,7 +46,8 @@ PAGE_TEMPLATE = {
         "",
         "",
         "Laatste update:",
-        "             11-11-2014 12:00:39"
+        format(datetime.datetime.now().strftime(
+            DATETIME_FORMAT), ALIGN_RIGHT)
     ],
     "time": 10012,
     "blink": 5,
@@ -77,9 +83,13 @@ def make_pages_dict():
     for group in activity_groups:
         newpage = PAGE_TEMPLATE.copy()
         lines = []
+        lines.append(TOP_LINE)
         for activity in group:
+            # Activities are (name, date) tuples
             lines.append(activity[0])
-            lines.append(format(activity[1], '>' + str(LINE_WIDTH))) # right-align
+            lines.append(format(activity[1], ALIGN_RIGHT)) # right-align
+        for _ in range(len(lines) - 8):
+            lines.append('')
         newpage['lines'] = lines
         pages.append(newpage)
 
