@@ -88,7 +88,7 @@ def make_pages_dict():
             # Activities are (name, date) tuples
             lines.append(activity[0])
             lines.append(format(activity[1], ALIGN_RIGHT)) # right-align
-        for _ in range(len(lines) - 8):
+        for _ in range(8 - len(lines)):
             lines.append('')
         newpage['lines'] = lines
         pages.append(newpage)
