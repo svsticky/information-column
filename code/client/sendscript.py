@@ -1,16 +1,16 @@
 #! /usr/bin/python
 
-from pprint import pprint;
+from pprint import pprint
 import sys, getopt, json, configparser
-from math import floor;
+from math import floor
 
-Config = configparser.ConfigParser();
+Config = configparser.ConfigParser()
 
 def ValueCharacter(value):
     return chr(value+32)
 
 def main(argv):
-    Config.read("./settings/main.cfg"); # Read the configuration file
+    Config.read("./settings/main.cfg") # Read the configuration file
 
     file = ''
     output = ''
@@ -43,7 +43,7 @@ def main(argv):
 
     controlstring = "%s%s\n" % (soh, chr(address+32))
 
-    controlstring += ReadPages(data["pages"]);
+    controlstring += ReadPages(data["pages"])
     controlstring += "%s%s%s" % (fs, syn, cr)
 
     if (writeToOutput and output != ''):
@@ -88,60 +88,60 @@ def Readtime(valueA, valueB, valueC, valueD):
     return "%sA%s%s%s%s\n" % (esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
 
 def BetterReadtime(value):
-    valA = floor(value/4096);
-    value %= 4096;
-    valB = floor(value/256);
-    value %= 256;
-    valC = floor(value/16);
-    value %= 16;
-    valD = floor(value);
+    valA = floor(value/4096)
+    value %= 4096
+    valB = floor(value/256)
+    value %= 256
+    valC = floor(value/16)
+    value %= 16
+    valD = floor(value)
 
     print("%s %s %s %s" % (valA, valB, valC, valD))
 
-    v = 2048*valA + 256 * valB + 16*valC + valD;
-    print(v);
+    v = 2048*valA + 256 * valB + 16*valC + valD
+    print(v)
 
-    return Readtime(int(valA), int(valB), int(valC), int(valD));
+    return Readtime(int(valA), int(valB), int(valC), int(valD))
 
 def TimeValue(value):
     i = len(value)-1
     ii = 0
-    s = 0;
+    s = 0
     while i >= 0:
         s += pow(16, ii) * (ord(value[i])-32)
-        i -=1;
+        i -=1
         ii += 1
         pass
     print(s)
     return s
 
 def Brightness(value):
-    v = int(value);
+    v = int(value)
     if ( v < 1 or v > 17):
-        raise NameError("Value must be between 1 and 17");
-    return "%sQ%s%s\n" % (esc, ValueCharacter(v), fs);
+        raise NameError("Value must be between 1 and 17")
+    return "%sQ%s%s\n" % (esc, ValueCharacter(v), fs)
 
 def Scroll(value):
-    v = int(value);
+    v = int(value)
     if (v < 0 or v > 1):
-        raise NameError("Value must be either 0 or 1");
-    return "%sR%s%s\n" % (esc, ValueCharacter(v), fs);
+        raise NameError("Value must be either 0 or 1")
+    return "%sR%s%s\n" % (esc, ValueCharacter(v), fs)
 
 def Fading(value):
     v = int(value)
 
 def ReadPages(pages):
-    string = "";
+    string = ""
     for page in pages:
         string += ReadPage(page)
-    return string;
+    return string
 
 def ReadPage(page):
-    p = "";
+    p = ""
     for x in range(0,8):
         p += "%s%s%s\n" % (fs, x, page["lines"][x])
     p += "%s\n" % (fs)
-    p += BetterReadtime(page["time"]/26.7);
+    p += BetterReadtime(page["time"]/26.7)
     return p
 
 
