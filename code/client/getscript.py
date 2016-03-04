@@ -79,6 +79,9 @@ def make_pages_dict():
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]
     pages = []
+    # Add empty lines if page template has less than 8 lines
+    for _ in range(8 - len(PAGE_TEMPLATE['lines'])):
+        PAGE_TEMPLATE['lines'].append('')
     pages.append(PAGE_TEMPLATE)
     for group in activity_groups:
         newpage = PAGE_TEMPLATE.copy()
