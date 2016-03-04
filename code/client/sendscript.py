@@ -139,7 +139,10 @@ def ReadPages(pages):
 def ReadPage(page):
     p = ""
     for x in range(0,8):
-        p += "%s%s%s\n" % (fs, x, page["lines"][x])
+        try:
+            p += "%s%s%s\n" % (fs, x, page["lines"][x])
+        except IndexError: #out of lines
+            p += "%s%s%s\n" % (fs, x, "")
     p += "%s\n" % (fs)
     p += BetterReadtime(page["time"]/26.7)
     return p
