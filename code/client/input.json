@@ -1,0 +1,33 @@
+{
+  "pages": [
+    {
+      "brightness": 2,
+      "fading": 0,
+      "moving": {
+        "speed": 10,
+        "width": 2
+      },
+      "lines": [
+        "        Welkom bij Sticky,",
+        "    de studievereniging voor",
+		" Informatica en Informatiekunde!",
+        "",
+		" Dagelijks van 9-17 uur gekopend",
+        "        Kom binnen voor",
+        "     koffie en een koekje :)",
+		"Refresh uitgeschakeld!"
+      ],
+      "time": 10012,
+      "blink": 5,
+      "scroll": 1,
+      "schedular": {
+        "minutes": 10,
+        "hours": 14,
+        "year": 2014,
+        "month": 11,
+        "seconds": 50,
+        "day": 11
+      }
+    }
+  ]
+}
