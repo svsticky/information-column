@@ -1,5 +1,6 @@
 #! /usr/bin/python
 
+import socket
 from pprint import pprint
 import sys, getopt, json, configparser
 from math import floor
@@ -41,7 +42,7 @@ def main(argv):
 
     print("Attempting to connect to {0} controller on port {1}".format(ip, address))
 
-    controlstring = "%s%s\n" % (soh, chr(address+32))
+    controlstring = "%s%s" % (soh, chr(address+32))
 
     controlstring += ReadPages(data["pages"])
     controlstring += "%s%s%s" % (fs, syn, cr)
@@ -50,10 +51,16 @@ def main(argv):
         f = open(output, 'w')
         f.write(controlstring)
         f.close()
-    else:
-        print(controlstring)
-    TimeValue("  7'")
-    TimeValue(" !'&")
+    tv1 = TimeValue("  7'")
+    tv2 = TimeValue(" !'&")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((ip, 23))
+    sock.recv(1024) # Necesssary to get rid of the *** mini blabla *** header!
+
+    sock.sendall(controlstring.encode())
+    sock.sendall(str(tv1).encode())
+    sock.sendall(str(tv2).encode())
+    sock.close()
 
 
 # Define standard values for the protocol.
@@ -70,7 +77,7 @@ def BlinkSpeed(value):
     v = int(value)
     if (v < 0 or v > 4):
         raise NameError('Value must be between 0 and 4')
-    return "%sB%s%s\n" % (esc, ValueCharacter(v), fs)
+    return "%sB%s%s" % (esc, ValueCharacter(v), fs)
 
 def Readtime(valueA, valueB, valueC, valueD):
     vA = int(valueA)
@@ -85,7 +92,7 @@ def Readtime(valueA, valueB, valueC, valueD):
         raise NameError('Value must be between 0 and 50')
     if (vD < 0 or vD > 50):
         raise NameError('Value must be between 0 and 50')
-    return "%sA%s%s%s%s\n" % (esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
+    return "%sA%s%s%s%s" % (esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
 
 def BetterReadtime(value):
     valA = floor(value/4096)
@@ -119,13 +126,13 @@ def Brightness(value):
     v = int(value)
     if ( v < 1 or v > 17):
         raise NameError("Value must be between 1 and 17")
-    return "%sQ%s%s\n" % (esc, ValueCharacter(v), fs)
+    return "%sQ%s%s" % (esc, ValueCharacter(v), fs)
 
 def Scroll(value):
     v = int(value)
     if (v < 0 or v > 1):
         raise NameError("Value must be either 0 or 1")
-    return "%sR%s%s\n" % (esc, ValueCharacter(v), fs)
+    return "%sR%s%s" % (esc, ValueCharacter(v), fs)
 
 def Fading(value):
     v = int(value)
@@ -140,10 +147,10 @@ def ReadPage(page):
     p = ""
     for x in range(0,8):
         try:
-            p += "%s%s%s\n" % (fs, x, page["lines"][x])
+            p += "%s%s%s" % (fs, x, page["lines"][x])
         except IndexError: #out of lines
-            p += "%s%s%s\n" % (fs, x, "")
-    p += "%s\n" % (fs)
+            p += "%s%s%s" % (fs, x, "")
+    p += "%s" % (fs)
     p += BetterReadtime(page["time"]/26.7)
     return p
 
