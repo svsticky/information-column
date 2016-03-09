@@ -80,8 +80,6 @@ def connect_and_send(ip, controlstring):
     sock.recv(1024) # Necesssary to get rid of the *** mini blabla *** header!
 
     sock.sendall(controlstring.encode())
-    sock.sendall(str(tv1).encode())
-    sock.sendall(str(tv2).encode())
     sock.close()
 
 
