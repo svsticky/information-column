@@ -1,7 +1,6 @@
 #! /usr/bin/python
 
 import socket
-from pprint import pprint
 import sys, getopt, json, configparser
 from math import floor
 
@@ -45,18 +44,30 @@ def main(argv=sys.argv[1:]):
     address = int(Config["ConnectionInfo"]['address']) # Get the address of the controller
 
     print("Attempting to connect to {0} controller on port {1}".format(ip, address))
-
-    controlstring = "%s%s" % (soh, chr(address+32))
-
-    controlstring += ReadPages(data["pages"])
-    controlstring += "%s%s%s" % (fs, syn, cr)
+    controlstring = build_controlstring(data, address)
 
     if (writeToOutput and output != ''):
         f = open(output, 'w')
         f.write(controlstring)
         f.close()
-    tv1 = TimeValue("  7'")
-    tv2 = TimeValue(" !'&")
+
+    connect_and_send(ip, controlstring)
+
+def build_controlstring(data, address):
+    '''
+    Build a controlstring that can be sent to the zuil from a data object and controller address.
+    
+    Controller address is not an IP!
+    '''
+    result = '{}{}'.format(soh, chr(address+32))
+    result += ReadPages(data["pages"])
+    result += '{}{}{}'.format(fs, syn, cr)
+    result += str(TimeValue("  7'"))
+    result += str(TimeValue(" !'&"))
+    return result
+
+def connect_and_send(ip, controlstring):
+    ''' Open a connection and send the control string. '''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ip, 23))
     sock.recv(1024) # Necesssary to get rid of the *** mini blabla *** header!
@@ -65,6 +76,7 @@ def main(argv=sys.argv[1:]):
     sock.sendall(str(tv1).encode())
     sock.sendall(str(tv2).encode())
     sock.close()
+
 
 
 # Define standard values for the protocol.
@@ -107,10 +119,10 @@ def BetterReadtime(value):
     value %= 16
     valD = floor(value)
 
-    print("%s %s %s %s" % (valA, valB, valC, valD))
+    #print("%s %s %s %s" % (valA, valB, valC, valD))
 
     v = 2048*valA + 256 * valB + 16*valC + valD
-    print(v)
+    #print(v)
 
     return Readtime(int(valA), int(valB), int(valC), int(valD))
 
@@ -123,7 +135,7 @@ def TimeValue(value):
         i -=1
         ii += 1
         pass
-    print(s)
+    #print(s)
     return s
 
 def Brightness(value):

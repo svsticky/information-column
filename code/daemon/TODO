@@ -1,0 +1,4 @@
+- Relocate sendsettings to default location, set defaults and create if not exists
+- Write daemon (no shit)
+- Replace relevant print() calls with logging equivalents
+- Rename constants to allcaps to be more clear in them being constants
