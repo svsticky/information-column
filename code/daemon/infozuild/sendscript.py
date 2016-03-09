@@ -3,6 +3,7 @@
 import socket
 import sys, getopt, json, configparser
 from math import floor
+import os.path
 
 Config = configparser.ConfigParser()
 
@@ -10,7 +11,13 @@ def ValueCharacter(value):
     return chr(value+32)
 
 def main(argv=sys.argv[1:]):
-    Config.read("./settings/main.cfg") # Read the configuration file
+    configdir = os.path.expanduser('~/.infozuil')
+    configpath = os.path.join(configdir, 'send.cfg')
+    if not os.path.isdir(configdir) or not os.path.isfile(configpath):
+        print('Configfile does not exist, please create send.cfg in ~/.infozuil')
+        os.mkdir(configdir)
+        sys.exit(1)
+    Config.read(configpath) # Read the configuration file
 
     file = ''
     output = ''
