@@ -115,14 +115,14 @@ def main():
         description='Retrieve events from Koala and output in JSON format suitable for the zuil.'
         )
     parser.add_argument(
-        '--output', '-o', 
+        '--output', '-o',
         help='output the resulting JSON not to stdout, but to a file. (File is overwritten)')
     parser.add_argument(
         '--limit', '-l', type=int, default=-1,
         help='limit the number of events displayed.')
 
     args = parser.parse_args()
- 
+
     result = make_pages_json(args.limit)
     if args.output:
         with open(args.output, 'w') as outputfile:
