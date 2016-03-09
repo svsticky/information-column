@@ -1,6 +1,7 @@
 ''' Daemon that will periodically update the zuil. '''
 import logging
 import configparser
+from os.path import expanduser
 
 from .getscript import make_pages_dict
 from .sendscript import build_controlstring, connect_and_send
@@ -24,7 +25,7 @@ def update_zuil(ip, controller_address):
 def main():
     ''' Console entry point. '''
     config = configparser.ConfigParser()
-    config.read('/home/maarten/.infozuil/daemon.ini')
+    config.read(expanduser('~/.infozuil/daemon.ini'))
     ip = config['ConnectionInfo']['Server']
     controller_address = config['ConnectionInfo']['Address']
 
