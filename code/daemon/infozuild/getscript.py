@@ -40,15 +40,14 @@ def get_activities():
 
 PAGE_TEMPLATE = {
     'lines': [
-        "        Welkom bij Sticky.",
+        "        Welkom bij Sticky:",
         " Uw bron voor koekjes, koffie en",
-        "         hulp bij practica",
+        "        hulp bij practica",
         "",
-        "",
+        "Dagelijks geopend van 9-17 uur.",
         "",
         "Laatste update:",
-        format(datetime.datetime.now().strftime(
-            DATETIME_FORMAT), ALIGN_RIGHT)
+        "  +++ OUT OF CHEESE ERROR +++", # replaced when script is run
     ],
     "time": 10012,
     "blink": 5,
@@ -83,6 +82,10 @@ def make_pages_dict():
     # Add empty lines if page template has less than 8 lines
     for _ in range(8 - len(PAGE_TEMPLATE['lines'])):
         PAGE_TEMPLATE['lines'].append('')
+    now = format(datetime.datetime.now().strftime(
+        DATETIME_FORMAT), ALIGN_RIGHT)
+    PAGE_TEMPLATE['lines'][-1] = now
+    print(PAGE_TEMPLATE['lines'][-1])
     pages.append(PAGE_TEMPLATE)
     for group in activity_groups:
         newpage = PAGE_TEMPLATE.copy()
