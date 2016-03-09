@@ -34,8 +34,12 @@ def main(argv=sys.argv[1:]):
 
     if (file == ''):
         file = 'test.json'
-    with open(file) as data_file:
-        data = json.load(data_file)
+    try:
+        with open(file) as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        print('Could not open file {}, exiting'.format(file))
+        sys.exit(1)
 
     ip = Config["ConnectionInfo"]['server'] # get the IP on which to connect
     address = int(Config["ConnectionInfo"]['address']) # Get the address of the controller
