@@ -16,9 +16,9 @@ JOB_DEFAULTS = {
     'max_instances': 1
 }
 
-def update_zuil(ip, controller_address):
+def update_zuil(ip, controller_address, max_events):
     ''' Wrapper method to retrieve events and update the zuil. '''
-    data = make_pages_dict()
+    data = make_pages_dict(max_events)
     controlstring = build_controlstring(data, int(controller_address))
     connect_and_send(ip, controlstring)
 
@@ -29,10 +29,13 @@ def main():
     ip = config['ConnectionInfo']['Server']
     controller_address = config['ConnectionInfo']['Address']
 
+    update_interval = '*/{}'.format(config['Daemon']['Interval'])
+    max_events = config.getint('Daemon', 'MaxEntries')
+
     scheduler = BlockingScheduler(job_defaults=JOB_DEFAULTS)
     scheduler.add_job(
-        update_zuil, trigger='cron', args=(ip, controller_address),
-        hour='7-19', minute='*')
+        update_zuil, trigger='cron', args=(ip, controller_address, max_events),
+        hour='7-19', minute=updateInterval)
 
     scheduler.start()
 

@@ -68,24 +68,27 @@ PAGE_TEMPLATE = {
     }
 }
 
-def make_pages_dict():
+def make_pages_dict(limit_activities=-1):
     '''
     Retrieve activities and build a dict that can be passed to the zuil.
     '''
-    activities = get_activities()
+    activities = get_activities()[0:limit_activities]
     if not activities:
         logging.warning('No activities were retrieved.')
 
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]
     pages = []
+
     # Add empty lines if page template has less than 8 lines
     for _ in range(8 - len(PAGE_TEMPLATE['lines'])):
         PAGE_TEMPLATE['lines'].append('')
+
+    # Update 'last updated'-time
     now = format(datetime.datetime.now().strftime(
         DATETIME_FORMAT), ALIGN_RIGHT)
     PAGE_TEMPLATE['lines'][-1] = now
-    print(PAGE_TEMPLATE['lines'][-1])
+
     pages.append(PAGE_TEMPLATE)
     for group in activity_groups:
         newpage = PAGE_TEMPLATE.copy()
@@ -102,9 +105,9 @@ def make_pages_dict():
 
     return {'pages': pages}
 
-def make_pages_json():
+def make_pages_json(max_activities=-1):
     ''' Convert the pages dict to a json string. '''
-    return json.dumps(make_pages_dict())
+    return json.dumps(make_pages_dict(max_activities))
 
 def main():
     ''' Console script entry point. '''
@@ -114,10 +117,13 @@ def main():
     parser.add_argument(
         '--output', '-o', 
         help='output the resulting JSON not to stdout, but to a file. (File is overwritten)')
+    parser.add_argument(
+        '--limit', '-l', type=int, default=-1,
+        help='limit the number of events displayed.')
 
     args = parser.parse_args()
  
-    result = make_pages_json()
+    result = make_pages_json(args.limit)
     if args.output:
         with open(args.output, 'w') as outputfile:
             outputfile.write(result)
