@@ -1,6 +1,7 @@
 ''' Daemon that will periodically update the zuil. '''
 import logging
 import configparser
+import argparse
 from os.path import expanduser
 
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -24,6 +25,13 @@ def update_zuil(host, controller_address, max_events):
 
 def main():
     ''' Console entry point. '''
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--once', action='store_true',
+                        help='update immediately and exit')
+
+    args = parser.parse_args()
+
     config = configparser.ConfigParser()
     config.read(expanduser('~/.infozuil/daemon.ini'))
     host = config['ConnectionInfo']['Server']
@@ -32,12 +40,16 @@ def main():
     update_interval = '*/{}'.format(config['Daemon']['Interval'])
     max_events = config.getint('Daemon', 'MaxEntries')
 
-    scheduler = BlockingScheduler(job_defaults=JOB_DEFAULTS)
-    scheduler.add_job(
-        update_zuil, trigger='cron', args=(host, controller_address, max_events),
-        hour='7-19', minute=update_interval)
+    if args.once:
+        update_zuil(host, controller_address, max_events)
 
-    scheduler.start()
+    else:
+        scheduler = BlockingScheduler(job_defaults=JOB_DEFAULTS)
+        scheduler.add_job(
+            update_zuil, trigger='cron', args=(host, controller_address, max_events),
+            hour='7-19', minute=update_interval)
+
+        scheduler.start()
 
 if __name__ == '__main__':
     main()
