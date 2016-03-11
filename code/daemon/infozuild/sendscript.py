@@ -22,7 +22,7 @@ def main(argv=sys.argv[1:]):
     configdir = os.path.expanduser('~/.infozuil')
     configpath = os.path.join(configdir, 'send.cfg')
     if not os.path.isdir(configdir) or not os.path.isfile(configpath):
-        print('Configfile does not exist, please create send.cfg in ~/.infozuil')
+        logging.critical('Configfile does not exist, please create send.cfg in ~/.infozuil')
         os.mkdir(configdir)
         sys.exit(1)
     Config.read(configpath) # Read the configuration file
@@ -52,13 +52,13 @@ def main(argv=sys.argv[1:]):
         with open(file) as data_file:
             data = json.load(data_file)
     except FileNotFoundError:
-        print('Could not open file {}, exiting'.format(file))
+        logging.critical('Could not open file %s, exiting', file)
         sys.exit(1)
 
     ip = Config["ConnectionInfo"]['server'] # get the IP on which to connect
     address = int(Config["ConnectionInfo"]['address']) # Get the address of the controller
 
-    print("Attempting to connect to {0} controller on port {1}".format(ip, address))
+    logging.info("Attempting to connect to %s controller on port %s", ip, address)
     controlstring = build_controlstring(data, address)
 
     if writeToOutput and output != '':
@@ -116,14 +116,8 @@ def Readtime(valueA, valueB, valueC, valueD):
     vB = int(valueB)
     vC = int(valueC)
     vD = int(valueD)
-    if vA < 0 or vA > 50:
-        raise NameError('Value must be between 0 and 50')
-    if vB < 0 or vB > 50:
-        raise NameError('Value must be between 0 and 50')
-    if vC < 0 or vC > 50:
-        raise NameError('Value must be between 0 and 50')
-    if vD < 0 or vD > 50:
-        raise NameError('Value must be between 0 and 50')
+    if any(x < 0 or x > 50 for x in (vA, vB, vC, vD)):
+        raise NameError('Values for readtime must be between 0 and 50.')
     return "%sA%s%s%s%s" % (
         esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
 
@@ -136,10 +130,10 @@ def BetterReadtime(value):
     value %= 16
     valD = floor(value)
 
-    #print("%s %s %s %s" % (valA, valB, valC, valD))
+    logging.debug("Readtime: %s %s %s %s", valA, valB, valC, valD)
 
     v = 2048*valA + 256 * valB + 16*valC + valD
-    #print(v)
+    logging.debug('Readtime: %s', v)
 
     return Readtime(int(valA), int(valB), int(valC), int(valD))
 
@@ -151,8 +145,7 @@ def TimeValue(value):
         s += pow(16, ii) * (ord(value[i])-32)
         i -= 1
         ii += 1
-        pass
-    #print(s)
+    logging.debug('Timevalue %s', s)
     return s
 
 def Brightness(value):
