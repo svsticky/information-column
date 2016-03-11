@@ -1,9 +1,16 @@
 #! /usr/bin/python
+'''
+Contains the relevant code to generate a controlstring and send it to the zuil.
+'''
 
-import socket
-import sys, getopt, json, configparser
-from math import floor
+import configparser
+import getopt
+import json
+import logging
 import os.path
+import socket
+import sys
+from math import floor
 
 Config = configparser.ConfigParser()
 
@@ -11,6 +18,7 @@ def ValueCharacter(value):
     return chr(value+32)
 
 def main(argv=sys.argv[1:]):
+    ''' Console script entrypoint '''
     configdir = os.path.expanduser('~/.infozuil')
     configpath = os.path.join(configdir, 'send.cfg')
     if not os.path.isdir(configdir) or not os.path.isfile(configpath):
@@ -24,7 +32,7 @@ def main(argv=sys.argv[1:]):
     writeToOutput = False
 
     try:
-        opts, args = getopt.getopt(argv, "hf:o:", ["file=","output="])
+        opts, args = getopt.getopt(argv, "hf:o:", ["file=", "output="])
     except getopt.GetoptError:
         print('sendscript.py -f <json file>')
         sys.exit(2)
@@ -38,7 +46,7 @@ def main(argv=sys.argv[1:]):
             output = arg
             writeToOutput = True
 
-    if (file == ''):
+    if file == '':
         file = 'test.json'
     try:
         with open(file) as data_file:
@@ -53,7 +61,7 @@ def main(argv=sys.argv[1:]):
     print("Attempting to connect to {0} controller on port {1}".format(ip, address))
     controlstring = build_controlstring(data, address)
 
-    if (writeToOutput and output != ''):
+    if writeToOutput and output != '':
         f = open(output, 'w')
         f.write(controlstring)
         f.close()
@@ -63,7 +71,7 @@ def main(argv=sys.argv[1:]):
 def build_controlstring(data, address):
     '''
     Build a controlstring that can be sent to the zuil from a data object and controller address.
-    
+
     Controller address is not an IP!
     '''
     result = '{}{}'.format(soh, chr(address+32))
@@ -75,14 +83,17 @@ def build_controlstring(data, address):
 
 def connect_and_send(ip, controlstring):
     ''' Open a connection and send the control string. '''
+    logging.info('Connecting to %s', ip)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((ip, 23))
+    try:
+        sock.connect((ip, 23))
+    except OSError as ex:
+        logging.error('Could not connect to %s: %s', ip, ex)
+        return
     sock.recv(1024) # Necesssary to get rid of the *** mini blabla *** header!
 
     sock.sendall(controlstring.encode())
     sock.close()
-
-
 
 # Define standard values for the protocol.
 soh = chr(1)  # Start of Heading
@@ -96,7 +107,7 @@ gs  = chr(29) # Blink
 
 def BlinkSpeed(value):
     v = int(value)
-    if (v < 0 or v > 4):
+    if v < 0 or v > 4:
         raise NameError('Value must be between 0 and 4')
     return "%sB%s%s" % (esc, ValueCharacter(v), fs)
 
@@ -105,15 +116,16 @@ def Readtime(valueA, valueB, valueC, valueD):
     vB = int(valueB)
     vC = int(valueC)
     vD = int(valueD)
-    if (vA < 0 or vA > 50):
+    if vA < 0 or vA > 50:
         raise NameError('Value must be between 0 and 50')
-    if (vB < 0 or vB > 50):
+    if vB < 0 or vB > 50:
         raise NameError('Value must be between 0 and 50')
-    if (vC < 0 or vC > 50):
+    if vC < 0 or vC > 50:
         raise NameError('Value must be between 0 and 50')
-    if (vD < 0 or vD > 50):
+    if vD < 0 or vD > 50:
         raise NameError('Value must be between 0 and 50')
-    return "%sA%s%s%s%s" % (esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
+    return "%sA%s%s%s%s" % (
+        esc, ValueCharacter(vA), ValueCharacter(vB), ValueCharacter(vC), ValueCharacter(vD))
 
 def BetterReadtime(value):
     valA = floor(value/4096)
@@ -137,7 +149,7 @@ def TimeValue(value):
     s = 0
     while i >= 0:
         s += pow(16, ii) * (ord(value[i])-32)
-        i -=1
+        i -= 1
         ii += 1
         pass
     #print(s)
@@ -145,13 +157,13 @@ def TimeValue(value):
 
 def Brightness(value):
     v = int(value)
-    if ( v < 1 or v > 17):
+    if v < 1 or v > 17:
         raise NameError("Value must be between 1 and 17")
     return "%sQ%s%s" % (esc, ValueCharacter(v), fs)
 
 def Scroll(value):
     v = int(value)
-    if (v < 0 or v > 1):
+    if v < 0 or v > 1:
         raise NameError("Value must be either 0 or 1")
     return "%sR%s%s" % (esc, ValueCharacter(v), fs)
 
@@ -166,7 +178,7 @@ def ReadPages(pages):
 
 def ReadPage(page):
     p = ""
-    for x in range(0,8):
+    for x in range(0, 8):
         try:
             p += "%s%s%s" % (fs, x, page["lines"][x])
         except IndexError: #out of lines
