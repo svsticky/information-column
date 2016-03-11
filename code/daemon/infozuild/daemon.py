@@ -29,16 +29,38 @@ def main():
 
     parser.add_argument('--once', action='store_true',
                         help='update immediately and exit')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='activate debugging output')
+
+    parser.add_argument('--interval', type=int,
+                        help='number of minutes to wait')
+    parser.add_argument('--limit', '-l', type=int, default=None,
+                        help='maximum number of events to show')
+    parser.add_argument('--config', default='~/.infozuil/daemon.ini',
+                        help='configuration file to read')
+    parser.add_argument('--host', default=None,
+                        help='controller ip or hostname')
+    parser.add_argument('--index', type=int, default=None,
+                        help='controller index')
 
     args = parser.parse_args()
 
-    config = configparser.ConfigParser()
-    config.read(expanduser('~/.infozuil/daemon.ini'))
-    host = config['ConnectionInfo']['Server']
-    controller_address = config['ConnectionInfo']['Address']
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
-    update_interval = '*/{}'.format(config['Daemon']['Interval'])
-    max_events = config.getint('Daemon', 'MaxEntries')
+    logging.debug(args)
+
+    config = configparser.ConfigParser()
+    config.read(expanduser(args.config))
+    host = args.host or config['ConnectionInfo']['Server']
+    controller_address = args.index or config['ConnectionInfo']['Address']
+
+    update_interval = '*/{}'.format(args.interval or config['Daemon']['Interval'])
+    max_events = args.limit or config.getint('Daemon', 'MaxEntries')
+
+    logging.debug('Parameters: host %s, index %s, interval %s',
+                  host, controller_address, update_interval)
+    logging.debug('Limit %s, configfile %s', max_events, args.config)
 
     if args.once:
         update_zuil(host, controller_address, max_events)
