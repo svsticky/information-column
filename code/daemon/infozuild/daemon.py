@@ -2,6 +2,7 @@
 import logging
 import configparser
 import argparse
+import os.path
 from os.path import expanduser
 
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -51,7 +52,11 @@ def main():
     logging.debug(args)
 
     config = configparser.ConfigParser()
-    config.read(expanduser(args.config))
+    config.read(
+        [
+            os.path.join(os.path.dirname(__file__), 'daemon.ini'),
+            expanduser(args.config)
+            ])
     host = args.host or config['ConnectionInfo']['Server']
     controller_address = args.index or config['ConnectionInfo']['Address']
 
