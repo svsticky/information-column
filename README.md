@@ -7,27 +7,39 @@ The **information column** is the billboard-like device standing outside Sticky'
 * A Linux client device with
    * A wired network interface AND
    * A wireless interface
-* A server to run the serverside code
 * The information column
 
 ## Dependencies
 
 ### Client
 
-* Perl (version unknown)
-* libwww-perl
-* ?
-
-### Server
-
-* Web server with PHP
+- Python 3.4
+- Requests
+- APScheduler
 
 ## Future plans
 
-* Rewrite of the client code in Python.
-* Use of the [Koala](https://github.com/StickyUtrecht/constipated-koala) API as the source of  information, instead of a public Google Calendar feed.
+- Include times (and perhaps locations) in the output when Koala outputs it in the API
 
 ## Installation
-Install the client code on the client, and the serverside code on your server. Setup the network configuration of the client environment as described [here](config/network-config.md).
+- Create a virtualenv (if not installing system-wide)
+- Download the release tarball and do `pip install infozuild-x.x.x.tar.gz`. Internet connection is required for automatic downloading of dependencies.
+- (Optional) Create `~/.infozuil/daemon.ini` with config overrides (example is TODO)
 
-Use `gettext.pl` to retrieve the current information from the server, and `sendtozuil.pl /path/to/zuiltext` to upload `/path/to/zuiltext` to the information column. It will be instantly looped on the matrix display of the column.
+## Usage
+- `zuil-get`: connect to Koala and output a JSON dict readable by `zuil-send`
+	- Optional arguments: `--output` (`-o`): Write JSON to file, not stdout
+	- `--limit`, `-l`: Limit the number of events displayed (0: only title page, -1: all)
+- `zuil-send`: read a JSON dict and send it to the zuil.
+	- Required arguments:
+		- `--file [file]`: File to read
+	- Optional argument:
+		- `--output [file]`: output control string to a file
+- `zuild`: Combines `zuil-get` and `zuil-send`, generally better
+	- Optional arguments:
+		- `--once`: update zuil immediately and exit
+		- `--interval`: number of minutes to wait between updates
+		- `--limit`: as `zuil-get --limit`
+		- `--config`: manually specify a config file (other than `~/.infozuil/daemon.ini`)
+		- `--host`: override zuil hostname
+		- `--index`: override zuil controller index (which is always zero as we've only got one controller)
