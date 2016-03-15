@@ -34,7 +34,7 @@ case "$1" in
         log_end_msg $?
         ;;
     stop)
-        start-stop-daemon --stop --pidfile $PIDFILE --user "$RUNAS"
+        start-stop-daemon --stop --pidfile $PIDFILE $NAME
         log_end_msg $?
         rm -f $PIDFILE
         ;;
