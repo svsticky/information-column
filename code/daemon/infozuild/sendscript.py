@@ -85,6 +85,7 @@ def connect_and_send(ip, controlstring):
     ''' Open a connection and send the control string. '''
     logging.info('Connecting to %s', ip)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(10)
     try:
         sock.connect((ip, 23))
     except OSError as ex:
