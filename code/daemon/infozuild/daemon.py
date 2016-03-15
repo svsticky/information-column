@@ -78,19 +78,26 @@ def main():
         signal.signal(signal.SIGINT, quit_handler_cb)
         try:
             signal.signal(signal.SIGQUIT, quit_handler_cb)
+            signal.signal(signal.SIGUSR1, update_now_cb)
         except ValueError:
             pass # Windows
         SCHEDULER.add_job(
             update_zuil, trigger='cron', args=(host, controller_address, max_events),
-            hour='7-19', minute=update_interval)
+            hour='7-19', minute=update_interval, id='zuild.update')
 
         SCHEDULER.start()
 
 def quit_handler_cb(sig, *args):
     ''' Called when SIGINT, SIGTERM or SIGQUIT is received while in daemon mode.
     Attempt to shutdown somewhat cleanly by waiting for the currently executing jobs.'''
-    SCHEDULER.shutdown()
     logging.info('Shutting down, caught signal %s.', sig)
+    SCHEDULER.shutdown()
+
+def update_now_cb(*args):
+    ''' Called on SIGUSR1, immediately update zuil. '''
+    job = SCHEDULER.get_job('zuild.update')
+    SCHEDULER.add_job(job.func, args=job.args, kwargs=job.kwargs,
+                      name='manual_update', id='zuild.manual')
 
 if __name__ == '__main__':
     main()
