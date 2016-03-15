@@ -24,7 +24,7 @@ The **information column** is the billboard-like device standing outside Sticky'
 
 ## Installation
 - Ensure `pip`, `virtualenvwrapper` are installed
-- Create a virtualenv (if not installing system-wide) (`mkvirtualenv infozuil`)
+- Create a virtualenv (if not installing system-wide) (`mkvirtualenv -ppython3 infozuil`)
 - Download the release tarball and do `pip install infozuild-x.x.x.tar.gz`. Internet connection is required for automatic downloading of dependencies.
 - (Optional) Create `~/.infozuil/daemon.ini` with config overrides (example is TODO)
 - Use one of the methods documented in `config/` to set up the service.
