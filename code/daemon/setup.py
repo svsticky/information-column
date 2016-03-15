@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='infozuild',
-    version='0.3.1',
+    version='0.4.0',
     description='daemon and scripts for updating the infozuil',
 
     url='https://github.com/svsticky/information-column',
