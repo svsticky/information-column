@@ -14,17 +14,20 @@ The **information column** is the billboard-like device standing outside Sticky'
 ### Client
 
 - Python 3.4
-- Requests
-- APScheduler
+- Virtualenvwrapper, pip
+- Requests (via pip)
+- APScheduler (via pip)
 
 ## Future plans
 
 - Include times (and perhaps locations) in the output when Koala outputs it in the API
 
 ## Installation
-- Create a virtualenv (if not installing system-wide)
+- Ensure `pip`, `virtualenvwrapper` are installed
+- Create a virtualenv (if not installing system-wide) (`mkvirtualenv infozuil`)
 - Download the release tarball and do `pip install infozuild-x.x.x.tar.gz`. Internet connection is required for automatic downloading of dependencies.
 - (Optional) Create `~/.infozuil/daemon.ini` with config overrides (example is TODO)
+- Use one of the methods documented in `config/` to set up the service.
 
 ## Usage
 - `zuil-get`: connect to Koala and output a JSON dict readable by `zuil-send`
