@@ -2,6 +2,7 @@
 import logging
 import configparser
 import argparse
+import signal
 import os.path
 from os.path import expanduser
 
@@ -17,6 +18,8 @@ JOB_DEFAULTS = {
     'coalesce': True,
     'max_instances': 1
 }
+
+SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
 
 def update_zuil(host, controller_address, max_events):
     ''' Wrapper method to retrieve events and update the zuil. '''
@@ -71,12 +74,23 @@ def main():
         update_zuil(host, controller_address, max_events)
 
     else:
-        scheduler = BlockingScheduler(job_defaults=JOB_DEFAULTS)
-        scheduler.add_job(
+        signal.signal(signal.SIGTERM, quit_handler_cb)
+        signal.signal(signal.SIGINT, quit_handler_cb)
+        try:
+            signal.signal(signal.SIGQUIT, quit_handler_cb)
+        except ValueError:
+            pass # Windows
+        SCHEDULER.add_job(
             update_zuil, trigger='cron', args=(host, controller_address, max_events),
             hour='7-19', minute=update_interval)
 
-        scheduler.start()
+        SCHEDULER.start()
+
+def quit_handler_cb(sig, *args):
+    ''' Called when SIGINT, SIGTERM or SIGQUIT is received while in daemon mode.
+    Attempt to shutdown somewhat cleanly by waiting for the currently executing jobs.'''
+    SCHEDULER.shutdown()
+    logging.info('Shutting down, caught signal %s.', sig)
 
 if __name__ == '__main__':
     main()
