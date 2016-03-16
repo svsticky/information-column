@@ -1,0 +1,15 @@
+[Unit]
+Description=Periodically update the infozuil
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+Environment=HOME="/home/admin"
+Environment=VENVDIR="/home/admin/.virtualenvs/infozuil"
+Environment=PATH="$VENVDIR/bin:$PATH"
+ExecStart="/home/admin/.virtualenvs/infozuil/bin/zuild"
+
+[Install]
+WantedBy=multi-user.target
