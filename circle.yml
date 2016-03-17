@@ -7,4 +7,4 @@ machine:
 
 test:
     post:
-        - pylint infozuild --errors-only
+        - pip install pylint; pylint infozuild --errors-only
