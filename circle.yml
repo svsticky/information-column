@@ -1,2 +1,5 @@
 general:
     build_dir: code/daemon
+machine:
+    python:
+        version: 3.4.3
