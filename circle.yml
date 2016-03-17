@@ -7,4 +7,4 @@ machine:
 
 test:
     post:
-        - pylint infozuild --errors-only
+        - source /home/ubuntu/virtualenvs/venv-3.4.3/bin/activate; pylint infozuild --errors-only
