@@ -33,7 +33,7 @@ def get_activities():
 
     try:
         raw_events = response.json()
-    except json.decoder.JSONDecodeError:
+    except (ValueError, json.decoder.JSONDecodeError):
         logging.error('Invalid API output: %s', response.text)
         return []
     result = []
