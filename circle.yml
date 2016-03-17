@@ -1,0 +1,10 @@
+general:
+    build_dir: code/daemon
+
+machine:
+    python:
+        version: 3.4.3
+
+test:
+    post:
+        - pip install pylint; pylint infozuild --errors-only

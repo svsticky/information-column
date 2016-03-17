@@ -1,0 +1,8 @@
+Infozuil MD: DX3200_6
+
+Ethernet:
+20F001N YCL 0037GX
+
+W&T COM-
+20c03d00af9c
+OK 289936

@@ -1,0 +1,2 @@
+- Replace relevant print() calls with logging equivalents
+- Rename constants to allcaps to be more clear in them being constants
