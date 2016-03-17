@@ -7,6 +7,10 @@ import datetime
 import json
 import logging
 import requests
+try:
+    from json.decoder import JSONDecodeError as JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 
 
 LINE_WIDTH = 32
@@ -33,7 +37,7 @@ def get_activities():
 
     try:
         raw_events = response.json()
-    except (ValueError, json.decoder.JSONDecodeError):
+    except JSONDecodeError:
         logging.error('Invalid API output: %s', response.text)
         return []
     result = []
