@@ -24,6 +24,7 @@ setup(
     ],
     tests_require=[
         'nose2',
+        'pylint',
     ],
     test_suite='nose2.collector.collector',
     include_package_data=True,
