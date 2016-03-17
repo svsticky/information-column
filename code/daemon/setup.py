@@ -22,6 +22,10 @@ setup(
         'requests',
         'apscheduler',
     ],
+    tests_require=[
+        'nose2',
+    ],
+    test_suite='nose2.collector.collector',
     include_package_data=True,
     zip_safe=False
 )
