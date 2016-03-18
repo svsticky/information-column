@@ -8,6 +8,7 @@ from os.path import expanduser
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from . import __version__
 from .getscript import make_pages_dict
 from .sendscript import build_controlstring, connect_and_send
 
@@ -31,13 +32,16 @@ def main():
     ''' Console entry point. '''
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--version', action='version',
+                        version='infozuild {}'.format(__version__))
+
     parser.add_argument('--once', action='store_true',
                         help='update immediately and exit')
     parser.add_argument('--verbose', '-v', action='store_true',
                         help='activate debugging output')
 
     parser.add_argument('--interval', type=int,
-                        help='number of minutes to wait')
+                        help='number of minutes to wait between updates')
     parser.add_argument('--limit', '-l', type=int, default=None,
                         help='maximum number of events to show')
     parser.add_argument('--config', default='~/.infozuil/daemon.ini',
