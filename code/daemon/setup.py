@@ -1,9 +1,10 @@
 ''' Package information for infozuild. '''
 from setuptools import setup
+from infozuild import __version__
 
 setup(
     name='infozuild',
-    version='0.4.1',
+    version=__version__,
     description='daemon and scripts for updating the infozuil',
 
     url='https://github.com/svsticky/information-column',

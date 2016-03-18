@@ -4,13 +4,14 @@ Loads the upcoming activities from Koala and outputs them in json.
 from __future__ import print_function
 import argparse
 import datetime
-import json
 import logging
-import requests
+import json
 try:
     from json.decoder import JSONDecodeError as JSONDecodeError
 except ImportError:
     JSONDecodeError = ValueError
+
+import requests
 
 
 LINE_WIDTH = 32
