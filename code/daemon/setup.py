@@ -11,6 +11,20 @@ setup(
     author='Study Association Sticky',
     author_email='info@svsticky.nl',
 
+    license='MIT',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: MIT License',
+
+        'Environment :: Console',
+
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3 :: Only',
+    ],
+
     packages=['infozuild'],
     entry_points={
         'console_scripts': [
