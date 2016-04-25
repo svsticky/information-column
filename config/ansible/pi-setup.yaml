@@ -1,0 +1,86 @@
+---
+- hosts: zuil-pi
+  vars:
+      timezone: Europe/Amsterdam
+  become: yes
+  tasks:
+      - name: perform apt package cache update
+        when: ansible_pkg_mgr == 'apt'
+        apt: update_cache=yes
+
+      - name: disable root login over SSH
+        replace:
+            dest: '/etc/ssh/sshd_config'
+            regexp: 'PermitRootLogin without-password'
+            replace: 'PermitRootLogin no'
+        notify: reload sshd config
+
+      - name: disable password authentication over SSH
+        replace:
+            dest: '/etc/ssh/sshd_config'
+            regexp: '#PasswordAuthentication yes'
+            replace: 'PasswordAuthentication no'
+        notify: reload sshd config
+
+      - name: enable the nl-NL.UTF-8 locale
+        replace:
+            dest: '/etc/locale.gen'
+            regexp: '# nl_NL.UTF-8 UTF-8'
+            replace: 'nl_NL.UTF-8 UTF-8'
+        notify: generate locales
+
+      - name: select timezone
+        when: ansible_os_family == 'Debian'
+        template: 
+            # this is a template and not a copy because ansible strips newlines, which cause a refresh on every run
+            dest: '/etc/timezone'
+            backup: yes
+            src: templates/timezone
+        notify: reload timezone
+
+      - name: ensure journald logs are saved
+        when: ansible_service_mgr == 'systemd'
+        replace:
+            dest: '/etc/systemd/journald.conf'
+            regexp: '#Storage=auto'
+            replace: 'Storage=persistent'
+        notify: reload journald config
+
+      - name: add pi user to systemd-journal
+        when: ansible_service_mgr == 'systemd'
+        user:
+            name: pi
+            append: yes
+            groups: systemd-journal
+
+      - name: ensure terminal utilities are installed
+        when: ansible_pkg_mgr == 'apt'
+        apt: name='{{item}}' state=latest
+        with_items:
+            - tmux
+            - vim
+
+      - name: perform safe package upgrade
+        when: ansible_pkg_mgr == 'apt'
+        apt: update_cache=yes upgrade=safe
+
+  handlers:
+      - name: reload sshd config
+        become: yes
+        become_user: root
+        service: name=ssh state=reloaded
+
+      - name: reload journald config
+        become: yes
+        become_user: root
+        service: name=systemd-journald state=restarted
+
+      - name: generate locales
+        become: yes
+        become_user: root
+        command: locale-gen
+
+      - name: reload timezone
+        become: yes
+        become_user: root
+        command: dpkg-reconfigure --frontend noninteractive tzdata

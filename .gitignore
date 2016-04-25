@@ -9,6 +9,9 @@ __pycache__/
 # C extensions
 *.so
 
+# ansible failures
+*.retry
+
 # Distribution / packaging
 .Python
 env/
