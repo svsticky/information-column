@@ -1,0 +1,33 @@
+---
+# This playbook installs the network configuration for the zuil-pi
+# This method is probably preferrable over /etc/network/interfaces, as it does not disable dhcp.
+- hosts: zuil-pi
+  vars_prompt:
+    - name: "wireless_ssid"
+      prompt: "Enter wireless network name:"
+      private: no
+    - name: "wireless_psk"
+      prompt: "Enter passphrase for network {{ wireless_ssid }}:"
+      private: yes
+
+  tasks:
+      - name: install wpa_supplicant.conf
+        become: yes
+        template:
+            dest: /etc/wpa_supplicant/wpa_supplicant.conf
+            src: templates/wpa_supplicant.conf
+            mode: 0600
+            backup: yes
+      - name: install dhcpcd.conf
+        become: yes
+        template:
+            dest: /etc/dhcpcd.conf
+            src: templates/dhcpcd.conf
+            backup: yes
+        notify: reload dhcpcd
+
+  handlers:
+       - name: reload dhcpcd
+         become: yes
+         become_user: root
+         service: name=dhcpcd state=restarted
