@@ -1,0 +1,44 @@
+---
+# This playbook ensures the zuild daemon is installed on the host and the service is installed and activated, if a known service manager is used.
+# We assume a Raspberry Pi with Raspbian is used, and make no checks on the package manager used, as it is apt by default.
+- hosts: zuil-pi
+  tasks:
+      - name: ensure pip is available (install via apt)
+        become: yes
+        apt: name=python3-pip state=latest
+
+      - name: ensure python helpers are up to date
+        # The default versions of these modules may cause problems which cannot be resolved by the package itself, and have to be updated system-wide.
+        become: yes
+        pip: name={{ item }} state=latest executable=pip3
+        with_items:
+            - setuptools
+            - virtualenv
+
+      - name: ensure infozuild is up to date
+        pip: name='infozuild' state=latest virtualenv={{ ansible_user_dir }}/.virtualenvs/zuild virtualenv_python=python3
+
+      - name: create systemd service file
+        become: yes
+        template: src=templates/zuild.service dest=/etc/systemd/system/zuild.service owner=root group=root mode=0644
+        when: ansible_service_mgr == 'systemd'
+        notify: reload systemd
+
+      - name: create sysv service
+        become: yes
+        template: src=templates/zuild.sysv dest=/etc/init.d/zuild owner=root group=root mode=0755
+        when: ansible_service_mgr == 'sysv'
+
+      - name: create upstart service
+        become: yes
+        template: src=templates/zuild.conf.upstart dest=/etc/init/zuild.conf owner=root group=root mode=0755
+        when: ansible_service_mgr == 'upstart'
+
+      - name: enable and start zuild service
+        become: yes
+        service: name=zuild state=started enabled=yes
+  handlers:
+      - name: reload systemd
+        become: yes
+        become_user: root
+        command: systemctl daemon-reload

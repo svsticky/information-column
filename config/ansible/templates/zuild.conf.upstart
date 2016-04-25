@@ -1,0 +1,17 @@
+# zuild
+#
+# Updates the infozuil
+
+description	"Periodically update the infozuil"
+
+# no start option as you might not want it to auto-start
+# This might not be supported - you might need a: start on runlevel [3]
+start on runlevel [3]
+stop on runlevel [!2345]
+
+respawn
+
+script
+    cd {{ ansible_user_dir }}
+    su -c "PATH={{ ansible_user_dir }}/.virtualenvs/zuild/bin:$PATH zuild" {{ ansible_user_id }}
+end script

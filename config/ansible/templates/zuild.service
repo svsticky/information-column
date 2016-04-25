@@ -1,0 +1,15 @@
+[Unit]
+Description=Periodically update the infozuil
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user_id }}
+Group={{ ansible_user_id }}
+Environment=HOME="{{ ansible_user_dir }}"
+Environment=VENVDIR="{{ ansible_user_dir }}/.virtualenvs/zuild"
+Environment=PATH="$VENVDIR/bin:$PATH"
+ExecStart={{ ansible_user_dir }}/.virtualenvs/zuild/bin/zuild
+
+[Install]
+WantedBy=multi-user.target
