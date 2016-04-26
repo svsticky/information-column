@@ -18,6 +18,7 @@
             src: templates/wpa_supplicant.conf
             mode: 0600
             backup: yes
+        notify: reload wpa_supplicant
       - name: install dhcpcd.conf
         become: yes
         template:
@@ -31,3 +32,7 @@
          become: yes
          become_user: root
          service: name=dhcpcd state=restarted
+       - name: reload wpa_supplicant
+         become: yes
+         become_user: root
+         command: pkill -HUP wpa_supplicant
