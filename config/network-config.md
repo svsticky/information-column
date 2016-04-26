@@ -1,5 +1,15 @@
 # Network configuration
 
+## New way
+The new config, deployed via ansible, is somewhat more dynamic in the sense that the wired static ip is only picked up when DHCP fails, and the wireless static ip is only picked up when connected to the appropriate network.
+For the config files, see `ansible/templates/dhcpcd.conf` and `wpa_supplicant.conf`.
+Some interesting numbers:
+- MAC of the new pi: b8:27:eb:d1:15:59 (wlan0) b8:27:eb:84:40:0c (eth0)
+- Static ip on wireless: 10.0.1.221
+- Static ip for eth0 picked up if DHCP fails: 131.211.83.1
+
+## Old way
+
 One of the most peculiar requirements for the server that has to connect to the information column, is its network configuration. After many attempts using a as-default-as-possible configuration, all the below settings were necessary for the system to successfully connect to the information column and send it new contents for its matrix display.
 
 The IP address of the information column itself is more-or-less hard coded to be `131.211.83.245` (`infozuil.students.cs.uu.nl` also resolves to this).
