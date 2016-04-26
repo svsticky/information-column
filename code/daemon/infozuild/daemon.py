@@ -59,11 +59,12 @@ def main():
     logging.debug(args)
 
     config = configparser.ConfigParser()
-    config.read(
+    read_configs = config.read(
         [
             os.path.join(os.path.dirname(__file__), 'daemon.ini'),
             expanduser(args.config)
             ])
+    logging.debug('Read configs: %s', read_configs)
     host = args.host or config['ConnectionInfo']['Server']
     controller_address = args.index or config['ConnectionInfo']['Address']
 
