@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily shutdown at 1701 to prevent damage to the Pi
+
+[Timer]
+OnCalendar=17:01
+Unit=shutdown.target
+
+[Install]
+WantedBy=timers.target

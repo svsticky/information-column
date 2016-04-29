@@ -23,6 +23,11 @@
         template: src=templates/zuild.service dest=/etc/systemd/system/zuild.service owner=root group=root mode=0644
         when: ansible_service_mgr == 'systemd'
         notify: reload systemd
+      - name: create systemd shutdown timer
+        become: yes
+        template: src=templates/scheduled-shutdown.timer dest=/etc/systemd/system/scheduled-shutdown.timer owner=root group=root mode=0644
+        when: ansible_service_mgr == 'systemd'
+        notify: reload systemd
 
       - name: create sysv service
         become: yes
@@ -34,9 +39,24 @@
         template: src=templates/zuild.conf.upstart dest=/etc/init/zuild.conf owner=root group=root mode=0755
         when: ansible_service_mgr == 'upstart'
 
+      - name: create scheduled shutdown cronjob
+        become: yes
+        when: ansible_service_mgr != 'systemd'
+        cron:
+            backup: yes
+            name: "scheduled-shutdown"
+            hour: 17
+            minute: 1
+            job: "/sbin/poweroff"
+            state: present
+
       - name: enable and start zuild service
         become: yes
         service: name=zuild state=started enabled=yes
+      - name: enable scheduled shutdown timer
+        become: yes
+        service: name=scheduled-shutdown.timer state=started enabled=yes
+        when: ansible_service_mgr == 'systemd'
   handlers:
       - name: reload systemd
         become: yes
