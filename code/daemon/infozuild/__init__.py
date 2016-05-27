@@ -1,2 +1,2 @@
 ''' Infozuild, a daemon to update the infozuil. '''
-__version__ = '0.4.4'
+__version__ = '0.5.0'

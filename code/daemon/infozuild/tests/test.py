@@ -24,7 +24,7 @@ class TestNotConnected(unittest.TestCase):
 
     def testAPIWeird(self):
         ''' Ensure no exception is raised if the API gives invalid (non-JSON) output. '''
-        infozuild.getscript.API_URL = 'https://maartenberg.nl.eu.org'
+        infozuild.getscript.API_URL = 'https://svsticky.nl'
         logging.disable(logging.ERROR)
         self.assertEqual(infozuild.getscript.get_activities(), [])
         logging.disable(logging.NOTSET)

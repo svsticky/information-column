@@ -21,6 +21,7 @@ JOB_DEFAULTS = {
 }
 
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
+DEBUGGING = False
 
 def update_zuil(host, controller_address, max_events):
     ''' Wrapper method to retrieve events and update the zuil. '''
@@ -30,6 +31,7 @@ def update_zuil(host, controller_address, max_events):
 
 def main():
     ''' Console entry point. '''
+    global DEBUGGING
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--version', action='version',
@@ -54,6 +56,7 @@ def main():
     args = parser.parse_args()
 
     if args.verbose:
+        DEBUGGING = True
         logging.getLogger().setLevel(logging.DEBUG)
 
     logging.debug(args)
@@ -84,12 +87,15 @@ def main():
         try:
             signal.signal(signal.SIGQUIT, quit_handler_cb)
             signal.signal(signal.SIGUSR1, update_now_cb)
+            signal.signal(signal.SIGUSR2, toggle_loglevel_cb)
         except ValueError:
             pass # Windows
         SCHEDULER.add_job(
             update_zuil, trigger='cron', args=(host, controller_address, max_events),
-            hour='7-19', minute=update_interval, id='zuild.update')
+            minute=update_interval, id='zuild.update')
 
+        if not args.verbose:
+            logging.getLogger().setLevel(logging.WARNING)
         SCHEDULER.start()
 
 def quit_handler_cb(sig, *args):
@@ -103,6 +109,17 @@ def update_now_cb(*args):
     job = SCHEDULER.get_job('zuild.update')
     SCHEDULER.add_job(job.func, args=job.args, kwargs=job.kwargs,
                       name='manual_update', id='zuild.manual')
+
+def toggle_loglevel_cb(*args):
+    ''' Called on SIGUSR2, toggles the loglevel between DEBUG and WARNING. '''
+    global DEBUGGING
+    if DEBUGGING:
+        logging.getLogger().setLevel(logging.WARNING)
+        DEBUGGING = False
+    else:
+        logging.getLogger().setLevel(logging.DEBUG)
+        DEBUGGING = True
+    logging.warning('Loglevel set to %s', 'debug' if DEBUGGING else 'warn')
 
 if __name__ == '__main__':
     main()
