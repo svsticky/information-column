@@ -43,9 +43,66 @@ def get_activities():
         return []
     result = []
     for event in raw_events:
-        result.append((event['name'], event['start_date']))
+        result.append((event['name'], build_when(event)))
 
     return result
+
+def build_when(event, today=None):
+    '''
+    Builds a string that hopefully contains just the right amount of info to
+    inform the viewer when an event will take place.
+    - start_date will always be present
+    - end_time will never be present without start_time
+
+    The following scenarios are likely:
+     1. end_date absent: legacy event, just show the date
+
+    end_date same as start_date:
+     2. No times: new(er) all-day event, just show the date
+     3. Start_time set, end_time absent:
+         Event without end, show start_time and date if not today
+     4. Both times set:
+         show date (if not today), start_ and end_time.
+
+    end_date NOT the same as start_date:
+     5. No times: multi-day all-day event, always show both dates
+     6. Start_time: [s_date] [s_time]~[e_date]
+     7. Both times: [s_date] [s_time]~[e_date] [e_time]
+    '''
+    if 'end_date' not in event: #1
+        return event['start_date']
+
+    start_date = datetime.date(
+        *[int(x) for x in event['start_date'].split('-')])
+    if not today:
+        today = datetime.date.today()
+
+    starts_today = today == start_date
+
+    if event['end_date'] == event['start_date']:
+        if 'start_time' not in event: #2
+            return event['start_date']
+
+        if 'end_time' not in event: #3
+            return "{}{}".format(
+                (event['start_date'] + ' ') if not starts_today else '',
+                event['start_time'])
+        else: #4
+            return "{}{}~{}".format(
+                (event['start_date'] + ' ') if not starts_today else '',
+                event['start_time'],
+                event['end_time'])
+
+    if 'start_time' not in event: #5
+        return "{}~{}".format(event['start_date'], event['end_date'])
+
+    if 'end_time' not in event: #6
+        return "{} {}~{}".format(
+            event['start_date'], event['start_time'], event['end_date'])
+
+    return "{} {} ~ {} {}".format(
+        event['start_date'], event['start_time'],
+        event['end_date'], event['end_time']) #7
 
 PAGE_TEMPLATE = {
     'lines': [
