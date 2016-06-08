@@ -78,7 +78,12 @@ def build_when(event, today=None):
         return event['start_date']
 
     start = dateutil.parser.parse(event['start_date'])
+    start_date = str(start.date())
+    start_time = no_secs(start)
+
     end = dateutil.parser.parse(event['end_date'])
+    end_date = str(end.date())
+    end_time = no_secs(end)
 
     if not today:
         today = datetime.date.today()
@@ -86,30 +91,25 @@ def build_when(event, today=None):
     starts_today = today == start.date()
     multiday = start.date() != end.date()
 
+    start_date_n2d = start_date + ' ' if not starts_today else '' # n2d == not today
+
     if not multiday:
         if 'T' not in event['start_date']: #2
-            return str(start.date())
+            return start_date
 
         if 'T' not in event['end_date']: #3
-            return "{}{}".format(
-                (str(start.date()) + ' ') if not starts_today else '',
-                no_secs(start.time()))
+            return "{}{}".format(start_date_n2d, start_time)
+
         else: #4
-            return "{}{}~{}".format(
-                (str(start.date()) + ' ') if not starts_today else '',
-                no_secs(start.time()),
-                no_secs(end.time()))
+            return "{}{}~{}".format(start_date_n2d, start_time, end_time)
 
     if 'T' not in event['start_date']: #5
-        return "{}~{}".format(start.date(), end.date())
+        return "{}~{}".format(start_date, end_date)
 
     if 'T' not in event['end_date']: #6
-        return "{} {}~{}".format(
-            start.date(), no_secs(start.time()), end.date())
+        return "{} {}~{}".format(start_date, start_time, end_date)
 
-    return "{} {} ~ {} {}".format(
-        start.date(), no_secs(start.time()),
-        end.date(), no_secs(end.time())) #7
+    return "{} {} ~ {} {}".format(start_date, start_time, end_date, end_time) #7
 
 PAGE_TEMPLATE = {
     'lines': [
