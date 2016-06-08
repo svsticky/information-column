@@ -35,6 +35,7 @@ setup(
         },
     install_requires=[
         'requests',
+        'python-dateutil',
         'apscheduler',
     ],
     tests_require=[

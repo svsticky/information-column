@@ -11,6 +11,7 @@ try:
 except ImportError:
     JSONDecodeError = ValueError
 
+import dateutil.parser
 import requests
 
 
@@ -47,6 +48,10 @@ def get_activities():
 
     return result
 
+def no_secs(time):
+    ''' Remove seconds and force to string because they don't matter '''
+    return time.strftime("%H:%M")
+
 def build_when(event, today=None):
     '''
     Builds a string that hopefully contains just the right amount of info to
@@ -72,37 +77,39 @@ def build_when(event, today=None):
     if 'end_date' not in event: #1
         return event['start_date']
 
-    start_date = datetime.date(
-        *[int(x) for x in event['start_date'].split('-')])
+    start = dateutil.parser.parse(event['start_date'])
+    end = dateutil.parser.parse(event['end_date'])
+
     if not today:
         today = datetime.date.today()
 
-    starts_today = today == start_date
+    starts_today = today == start.date()
+    multiday = start.date() != end.date()
 
-    if event['end_date'] == event['start_date']:
-        if 'start_time' not in event: #2
-            return event['start_date']
+    if not multiday:
+        if 'T' not in event['start_date']: #2
+            return str(start.date())
 
-        if 'end_time' not in event: #3
+        if 'T' not in event['end_date']: #3
             return "{}{}".format(
-                (event['start_date'] + ' ') if not starts_today else '',
-                event['start_time'])
+                (str(start.date()) + ' ') if not starts_today else '',
+                no_secs(start.time()))
         else: #4
             return "{}{}~{}".format(
-                (event['start_date'] + ' ') if not starts_today else '',
-                event['start_time'],
-                event['end_time'])
+                (str(start.date()) + ' ') if not starts_today else '',
+                no_secs(start.time()),
+                no_secs(end.time()))
 
-    if 'start_time' not in event: #5
-        return "{}~{}".format(event['start_date'], event['end_date'])
+    if 'T' not in event['start_date']: #5
+        return "{}~{}".format(start.date(), end.date())
 
-    if 'end_time' not in event: #6
+    if 'T' not in event['end_date']: #6
         return "{} {}~{}".format(
-            event['start_date'], event['start_time'], event['end_date'])
+            start.date(), no_secs(start.time()), end.date())
 
     return "{} {} ~ {} {}".format(
-        event['start_date'], event['start_time'],
-        event['end_date'], event['end_time']) #7
+        start.date(), no_secs(start.time()),
+        end.date(), no_secs(end.time())) #7
 
 PAGE_TEMPLATE = {
     'lines': [
