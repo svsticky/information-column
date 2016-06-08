@@ -52,7 +52,7 @@
 
       - name: enable and start zuild service
         become: yes
-        service: name=zuild state=started enabled=yes
+        service: name=zuild state=restarted enabled=yes
       - name: enable scheduled shutdown timer
         become: yes
         service: name=scheduled-shutdown.timer state=started enabled=yes
