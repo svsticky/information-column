@@ -6,7 +6,7 @@ import unittest
 
 import dateutil.parser
 import infozuild.getscript
-from infozuild.getscript import no_secs
+from infozuild.getscript import no_secs, ACTIVITY_DATE_FORMAT
 
 class TestNotConnected(unittest.TestCase):
     ''' Test various scenarios where the daemon might not be able to retrieve events from Koala. '''
@@ -48,7 +48,8 @@ class TestWhenBuilder(unittest.TestCase):
         }
         start = dateutil.parser.parse(event['start_date'])
         self.assertEqual(
-            infozuild.getscript.build_when(event), str(start.date()))
+            infozuild.getscript.build_when(event),
+            start.date().strftime(ACTIVITY_DATE_FORMAT))
 
     def test_all_single_day(self):
         ''' Tests single-day full-day event '''
@@ -60,7 +61,8 @@ class TestWhenBuilder(unittest.TestCase):
         start = dateutil.parser.parse(event['start_date'])
 
         self.assertEqual(
-            infozuild.getscript.build_when(event, self.tomorrow), str(start.date()))
+            infozuild.getscript.build_when(event, self.tomorrow),
+            start.date().strftime(ACTIVITY_DATE_FORMAT))
 
     def test_singleday_starttime(self):
         ''' Tests a single-day event with start-time but without end '''
@@ -75,7 +77,7 @@ class TestWhenBuilder(unittest.TestCase):
             infozuild.getscript.build_when(event, self.today), no_secs(start.time()))
         self.assertEqual(
             infozuild.getscript.build_when(event, self.tomorrow),
-            "{} {}".format(start.date(), no_secs(start.time())))
+            "{} {}".format(start.date().strftime(ACTIVITY_DATE_FORMAT), no_secs(start.time())))
 
     def test_singleday_startendtimes(self):
         ''' Tests a single day event with both start and end-times '''
@@ -93,8 +95,8 @@ class TestWhenBuilder(unittest.TestCase):
 
         self.assertEqual(
             infozuild.getscript.build_when(event, self.tomorrow),
-            "{} {}~{}".format(start.date(), no_secs(start.time()),
-                              no_secs(end.time())))
+            "{} {}~{}".format(start.date().strftime(ACTIVITY_DATE_FORMAT),
+                              no_secs(start.time()), no_secs(end.time())))
 
     def test_multiday_allday(self):
         ''' Tests multiday all-day event '''
@@ -108,7 +110,8 @@ class TestWhenBuilder(unittest.TestCase):
 
         self.assertEqual(
             infozuild.getscript.build_when(event, self.today),
-            "{}~{}".format(start.date(), end.date()))
+            "{}~{}".format(start.date().strftime(ACTIVITY_DATE_FORMAT),
+                           end.date().strftime(ACTIVITY_DATE_FORMAT)))
 
     def test_multiday_starttime(self):
         ''' Tests a multiday event with start-time but without end-time '''
@@ -122,7 +125,9 @@ class TestWhenBuilder(unittest.TestCase):
 
         self.assertEqual(
             infozuild.getscript.build_when(event),
-            "{} {}~{}".format(start.date(), no_secs(start.time()), end.date()))
+            "{} {}~{}".format(start.date().strftime(ACTIVITY_DATE_FORMAT),
+                              no_secs(start.time()),
+                              end.date().strftime(ACTIVITY_DATE_FORMAT)))
 
     def test_multiday_startendtime(self):
         ''' Tests a multi-day event with both start- and end-times '''
@@ -137,5 +142,5 @@ class TestWhenBuilder(unittest.TestCase):
         self.assertEqual(
             infozuild.getscript.build_when(event),
             "{} {} ~ {} {}".format(
-                start.date(), no_secs(start.time()),
-                end.date(), no_secs(end.time())))
+                start.date().strftime(ACTIVITY_DATE_FORMAT), no_secs(start.time()),
+                end.date().strftime(ACTIVITY_DATE_FORMAT), no_secs(end.time())))

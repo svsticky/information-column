@@ -160,7 +160,7 @@ def make_pages_dict(limit_activities=-1):
 
     # Update 'last updated'-time
     now = format(datetime.datetime.now().strftime(
-        DATETIME_FORMAT), ALIGN_RIGHT)
+        UPDATE_TIME_FORMAT), ALIGN_RIGHT)
     PAGE_TEMPLATE['lines'][-1] = now
 
     pages.append(PAGE_TEMPLATE)
