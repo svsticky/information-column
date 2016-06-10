@@ -13,6 +13,7 @@
 # Description:       Periodically update the infozuil
 ### END INIT INFO
 
+export LC_TIME=nl_NL.utf8
 VENVDIR={{ ansible_user_dir }}/.virtualenvs/zuild
 PATH=$VENVDIR/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NAME=zuild

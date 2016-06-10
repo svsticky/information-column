@@ -13,5 +13,5 @@ respawn
 
 script
     cd {{ ansible_user_dir }}
-    su -c "PATH={{ ansible_user_dir }}/.virtualenvs/zuild/bin:$PATH zuild" {{ ansible_user_id }}
+    su -c "LC_TIME=nl_NL.utf8 PATH={{ ansible_user_dir }}/.virtualenvs/zuild/bin:$PATH zuild" {{ ansible_user_id }}
 end script
