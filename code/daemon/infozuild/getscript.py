@@ -20,7 +20,8 @@ TOP_LINE = '----- Komende Activiteiten -----'
 API_URL = 'https://koala.svsticky.nl/api/activities'
 
 ALIGN_RIGHT = '>' + str(LINE_WIDTH)
-DATETIME_FORMAT = '%d-%m-%Y %X'
+UPDATE_TIME_FORMAT = '%d %B %X'
+ACTIVITY_DATE_FORMAT = '%d %b'
 def get_activities():
     '''
     Retrieve upcoming activities and return a list of (name, start_date) tuples.
@@ -74,15 +75,15 @@ def build_when(event, today=None):
      6. Start_time: [s_date] [s_time]~[e_date]
      7. Both times: [s_date] [s_time]~[e_date] [e_time]
     '''
-    if 'end_date' not in event: #1
-        return event['start_date']
-
     start = dateutil.parser.parse(event['start_date'])
-    start_date = str(start.date())
+    start_date = start.date().strftime(ACTIVITY_DATE_FORMAT)
     start_time = no_secs(start)
 
+    if 'end_date' not in event: #1
+        return start_date
+
     end = dateutil.parser.parse(event['end_date'])
-    end_date = str(end.date())
+    end_date = end.date().strftime(ACTIVITY_DATE_FORMAT)
     end_time = no_secs(end)
 
     if not today:
