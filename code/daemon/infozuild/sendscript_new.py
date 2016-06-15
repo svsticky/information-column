@@ -4,7 +4,9 @@
 Contains the relevant code to generate a controlstring and send it to the zuil.
 '''
 import datetime
+import logging
 import math
+import socket
 
 
 def encode_value(value):
@@ -50,22 +52,23 @@ class DisplayMode: # pylint: disable=too-few-public-methods, fixme
     output = 10     # Toggles, if connected, the output. (No idea if we use this.)
     modes = [blank, normal, test_off, test_halt, test_on, output]
 
-    def __init__(self, mode):
+    def __init__(self, mode, address=0):
         ''' Unfortunately trivial. '''
         if mode not in DisplayMode.modes:
             raise ValueError('Unknown DisplayMode:', mode)
+        self.address = address
         self.mode = mode
 
-    def to_controlstring(self, address):
+    def to_controlstring(self):
         ''' Generate a control string from the known mode and given address. '''
-        result = start_controlstring(address)
+        result = start_controlstring(self.address)
         result += ESC + 'D'
         result += encode_value(self.mode)
         result += FS + CR
 
         return result
 
-def set_rtc(address, when=None):
+def set_rtc(address=0, when=None):
     ''' Generates a controlstring that will set the controller's RTC to the given time. '''
     result = start_controlstring(address)
     result += ESC + 'T'
@@ -174,6 +177,8 @@ class Page:
 class Rotation:
     ''' Contains the pages that should be displayed, and the controller address. '''
     def __init__(self, address):
+        ''' Create a new Rotation, without any pages. '''
+        check_in_range(('Controller address', address, 0, 31))
         self.address = address
         self.pages = []
 
@@ -194,4 +199,38 @@ class Rotation:
         ''' Dump all relevant attributes as a JSON object. '''
         pass
 
-## Functions to manipulate lines,
+## Communication with the zuil
+def connect_and_send(ip, controlstring):
+    ''' Open a connection and send the given control string. '''
+    logging.info('Connecting to %s', ip)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(10)
+    try:
+        sock.connect((ip, 23))
+    except OSError as ex:
+        logging.error('Could not connect to %s: %s', ip, ex)
+        return
+    sock.recv(1024) # Necesssary to get rid of the *** mini blabla *** header!
+
+    sock.sendall(controlstring.encode())
+    sock.close()
+
+def update_rtc(ip, address=0, when=None):
+    ''' Generate a control string that will set the controller's RTC to the given time (or
+    the system time if none, and immediately send it to the controller. '''
+    logging.info('Starting RTC update.')
+    controlstring = set_rtc(address, when)
+
+    logging.info('Setting RTC.')
+    connect_and_send(ip, controlstring)
+    logging.info('RTC update complete.')
+
+def update_displaymode(ip, mode, address=0):
+    ''' Generate a controlstring that will set the display mode, and immediately send it.
+    '''
+    new_mode = DisplayMode(mode, address)
+    controlstring = new_mode.to_controlstring()
+
+    logging.info('Setting display mode %s', new_mode.mode)
+    connect_and_send(ip, controlstring)
+    logging.info('Mode setting complete.')
