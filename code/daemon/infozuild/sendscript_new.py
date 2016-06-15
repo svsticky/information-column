@@ -4,6 +4,7 @@
 Contains the relevant code to generate a controlstring and send it to the zuil.
 '''
 import datetime
+import json
 import logging
 import math
 import socket
@@ -110,7 +111,7 @@ class Page:
 
     def build_duration(self):
         ''' Return 4 characters representing the duration of this page. '''
-        i = self.duration
+        i = math.floor(self.duration / 26.7)
 
         # pylint: disable=invalid-name
         a = math.floor(i / 4096)
@@ -123,6 +124,8 @@ class Page:
 
         enc = encode_value
         result = enc(a) + enc(b) + enc(c) + enc(d)
+        logging.debug('duration: %s %s %s %s', a, b, c, d)
+        logging.debug(result)
         return result
 
     def build_schedular(self):
@@ -138,20 +141,22 @@ class Page:
         ''' Convert the page to a controlstring. This string must be used in a rotation! '''
         # Validate attributes are valid
         check_in_range(
+            ('Line amount', len(self.lines), 0, 8),
             ('Blink speed', self.blinkspeed, 0, 4),
             ('Duration', self.duration, 1, 218450),
-            ('Brightness', self.brightness, 1, 17),
-            ('Year', self.schedular.year, 1980, 2075),
-            ('Month', self.schedular.month, 1, 12),
-            ('Day', self.schedular.day, 1, 31),
-            ('Hour', self.schedular.hour, 0, 23),
-            ('Minute', self.schedular.minute, 0, 59),
-            ('Second', self.schedular.second, 0, 59)
+            ('Brightness', self.brightness, 0, 17)
             )
 
         result = ''
         for num, line in enumerate(self.lines):
             result += str(num) + line + FS
+
+        num += 1
+
+        if num < 8:
+            for line in range(num, 8):
+                result += str(line) + FS
+
 
         if self.blinkspeed:
             result += ESC + 'B' + encode_value(self.blinkspeed) + FS
@@ -159,9 +164,18 @@ class Page:
         result += ESC + 'A' + self.build_duration() + FS
 
         if self.schedular:
+            check_in_range(
+                ('Year', self.schedular.year, 1980, 2075),
+                ('Month', self.schedular.month, 1, 12),
+                ('Day', self.schedular.day, 1, 31),
+                ('Hour', self.schedular.hour, 0, 23),
+                ('Minute', self.schedular.minute, 0, 59),
+                ('Second', self.schedular.second, 0, 59)
+            )
             result += ESC + 'P' + self.build_schedular() + FS
 
-        result += ESC + 'Q' + encode_value(self.brightness) + FS
+        if self.brightness:
+            result += ESC + 'Q' + encode_value(self.brightness) + FS
 
         if self.scrolling:
             result += ESC + 'R' + encode_value(1) + FS
@@ -171,12 +185,30 @@ class Page:
         return result
 
     def to_json(self):
-        ''' Dump all relevant attributes as a JSON object. '''
-        pass
+        ''' Dump all relevant attributes as a JSON string. '''
+        return json.dumps(self.to_dict(), sort_keys=True)
+
+    def to_dict(self):
+        ''' Dump all relevant attributes as a dict. '''
+        result = {
+            'lines': self.lines,
+            'duration': self.duration,
+            'scrolling': self.scrolling,
+            'fading': self.fading
+            }
+
+        if self.blinkspeed:
+            result['blinkspeed'] = self.blinkspeed
+        if self.schedular:
+            result['schedular'] = self.schedular
+        if self.brightness:
+            result['brightness'] = self.brightness
+
+        return result
 
 class Rotation:
     ''' Contains the pages that should be displayed, and the controller address. '''
-    def __init__(self, address):
+    def __init__(self, address=0):
         ''' Create a new Rotation, without any pages. '''
         check_in_range(('Controller address', address, 0, 31))
         self.address = address
@@ -197,7 +229,11 @@ class Rotation:
 
     def to_json(self):
         ''' Dump all relevant attributes as a JSON object. '''
-        pass
+        return json.dumps(
+            {
+                'address': self.address,
+                'pages': [page.to_dict() for page in self.pages]
+            }, sort_keys=True)
 
 ## Communication with the zuil
 def connect_and_send(ip, controlstring):
