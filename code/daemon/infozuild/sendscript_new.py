@@ -95,6 +95,9 @@ def set_rtc(address=0, when=None):
 ## Page-related classes
 class Page:
     ''' Contains the information for one screenful of text. '''
+    attributes = ['blinkspeed', 'duration', 'schedular', 'brightness',
+                  'scrolling', 'fading']
+
     def __init__(self, lines):
         ''' Initialize a new page with the given text-lines and default attributes. '''
         self.lines = lines
@@ -102,13 +105,13 @@ class Page:
         self.blinkspeed = 4
         # pylint: disable=fixme
         self.duration = 10012 # TODO: define sane defaults
-        self.schedular = datetime.datetime.now()
+        self.schedular = None
         self.brightness = 2
         self.scrolling = True
         self.fading = False
-
         # All moving-text attributes are removed, because we can't use them anyway.
 
+    # Attribute encoding
     def build_duration(self):
         ''' Return 4 characters representing the duration of this page. '''
         i = math.floor(self.duration / 26.7)
@@ -137,6 +140,7 @@ class Page:
             enc(sch.year), enc(sch.month), enc(0), enc(sch.day), enc(sch.hour),
             enc(sch.minute), enc(sch.second))
 
+    # Encoding
     def to_controlstring(self):
         ''' Convert the page to a controlstring. This string must be used in a rotation! '''
         # Validate attributes are valid
@@ -192,28 +196,39 @@ class Page:
         ''' Dump all relevant attributes as a dict. '''
         result = {
             'lines': self.lines,
-            'duration': self.duration,
-            'scrolling': self.scrolling,
-            'fading': self.fading
             }
 
-        if self.blinkspeed:
-            result['blinkspeed'] = self.blinkspeed
-        if self.schedular:
-            result['schedular'] = self.schedular
-        if self.brightness:
-            result['brightness'] = self.brightness
+        for attribute in type(self).attributes:
+            attr_value = getattr(self, attribute)
+            if attr_value:
+                result[attribute] = attr_value
 
         return result
 
+    # Decoding
+    @classmethod
+    def from_json(cls, jsonstring):
+        ''' Initialize a page from a JSON-string. '''
+        return cls.from_dict(json.loads(jsonstring))
+
+    @classmethod
+    def from_dict(cls, data):
+        ''' Initialize a page from a dict of attributes. '''
+        page = cls(data['lines'])
+        for attribute in cls.attributes:
+            if attribute in data:
+                setattr(page, attribute, data[attribute])
+        return page
+
 class Rotation:
     ''' Contains the pages that should be displayed, and the controller address. '''
-    def __init__(self, address=0):
-        ''' Create a new Rotation, without any pages. '''
+    def __init__(self, address=0, pages=[]):
+        ''' Create a new Rotation. '''
         check_in_range(('Controller address', address, 0, 31))
         self.address = address
-        self.pages = []
+        self.pages = pages
 
+    # Encoding
     def to_controlstring(self):
         ''' Convert the rotation to a controlstring that can be sent to the controller. '''
         check_in_range(('Address', self.address, 0, 31))
@@ -227,13 +242,28 @@ class Rotation:
 
         return result
 
-    def to_json(self):
-        ''' Dump all relevant attributes as a JSON object. '''
-        return json.dumps(
-            {
+    def to_dict(self):
+        ''' Dump all relevant attributes as a dict. '''
+        return {
                 'address': self.address,
                 'pages': [page.to_dict() for page in self.pages]
-            }, sort_keys=True)
+            }
+
+    def to_json(self):
+        ''' Dump all relevant attributes as a JSON string. '''
+        return json.dumps(self.to_dict(), sort_keys=True)
+
+    # Decoding
+    @classmethod
+    def from_json(cls, jsonstring):
+        ''' Initialize a rotation from a JSON-string. '''
+        return cls.from_dict(json.loads(jsonstring))
+
+    @classmethod
+    def from_dict(cls, data):
+        ''' Initialize a rotation from a dict with a list of pages and address. '''
+        return cls(data['address'],
+                   [Page.from_dict(page) for page in data['pages']])
 
 ## Communication with the zuil
 def connect_and_send(ip, controlstring):
