@@ -43,6 +43,11 @@ Notes:
 - It is currently unknown if all lines of text are required to be entered (even if empty).
 - Only the 'duration' attribute seems to be required, all other attributes may be omitted by completely leaving out the corresponding `ESC .. FS`-section.
 
+#### Scrolling/fading
+Enabling scrolling makes the controller show a scrolling animation on page change, which makes the text scroll in from above.
+Enabling fading makes the controller decrease the brightness, replace the text, and then increase brightness on page change.
+Note that scrolling seems to override fading, and that if not explicitly set, the page will inherit the scroll/fade settings of the previous page. (If not set in any pages in the controlstring, the previous setting is kept.)
+
 #### Page duration
 The duration of a page specifies how long the page should be visible before the next page is shown. The duration is specified in 'ticks' of 26.7 milliseconds.
 The amount of ticks is encoded in four characters, A, B, C and D, which are encoded values from 0 up to 50.
@@ -66,7 +71,9 @@ There are some other values in the manual, but they either don't work or are no 
 In order to use these variables, setting the RTC is required. (Except for `%R`)
 
 ### RTC update
-The controller contains a RTC (Real Time Clock), that keeps track of the time independently of the network. It is currently unknown whether the RTC can save the time across power loss, and/or whether the time keeps ticking when power is not connected.
+The controller contains a RTC (Real Time Clock), that keeps track of the time independently of the network. The RTC seems to both save and update the time across power loss, this has not yet been tested for longer periods of time than a few minutes.
+
+Note that it takes some time for the controller to process the controlstring, and the seconds will be slightly behind. Text variables containing the time are automatically updated, not depending on page changes.
 
 The RTC can be updated to a new time by sending a control string following this format:
 

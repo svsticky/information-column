@@ -21,16 +21,16 @@ JOB_DEFAULTS = {
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
 DEBUGGING = False
 
-def update_zuil(host, controller_address, max_events, print_only=True):
+def update_zuil(host, controller_address, max_events, print_only=False):
     ''' Wrapper method to retrieve events and update the zuil. '''
     data = getscript.make_rotation(max_events)
     data.address = int(controller_address)
-    print(data.to_json())
+    logging.debug(data.to_json())
     controlstring = data.to_controlstring()
+
     if not print_only:
         sendscript.connect_and_send(host, controlstring)
-    else:
-        print(repr(controlstring.encode()))
+    logging.debug(repr(controlstring.encode()))
 
 def main():
     ''' Console entry point. '''

@@ -12,12 +12,13 @@ except ImportError:
 
 import dateutil.parser
 import requests
+import unidecode
 
 from .sendscript import Page, Rotation
 
 
 LINE_WIDTH = 32
-TOP_LINE = '  --- Komende Activiteiten --- %R'
+TOP_LINE = '  --- Komende Activiteiten ---  '
 API_URL = 'https://koala.svsticky.nl/api/activities'
 
 ALIGN_RIGHT = '>' + str(LINE_WIDTH)
@@ -147,15 +148,21 @@ def make_rotation(limit_activities=-1):
     rota.pages.append(Page(INFO_LINES))
 
     # Make pages with activities
-    for group in activity_groups:
-        page = Page()
-        page.lines.append(TOP_LINE)
+    for pageno, group in enumerate(activity_groups):
+        lines = [TOP_LINE]
 
         for activity in group: # activities are (name, date) tuples
-            page.lines.append(activity[0])
-            page.lines.append(format(activity[1], ALIGN_RIGHT))
+            name = unidecode.unidecode(activity[0])
+            lines.append(name)
+            lines.append(format(activity[1], ALIGN_RIGHT))
 
-        rota.pages.append(page)
+        for _ in range(7 - len(lines)):
+            lines.append('')
+
+        lines.append(format('{no}/{max}'.format(
+            no=pageno+1, max=len(activity_groups)), ALIGN_RIGHT))
+
+        rota.pages.append(Page(lines))
 
     return rota
 

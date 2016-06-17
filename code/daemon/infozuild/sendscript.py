@@ -109,11 +109,11 @@ class Page:
         else:
             self.lines = []
 
-        self.blinkspeed = 4
-        self.duration = 10012 # TODO: define sane defaults
+        self.blinkspeed = 1
+        self.duration = 10000 # TODO: define sane defaults
         self.schedular = None
-        self.brightness = 2
-        self.scrolling = True
+        self.brightness = 17
+        self.scrolling = False
         self.fading = False
         # All moving-text attributes are removed, because we can't use them anyway.
 
@@ -354,7 +354,7 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    if args.displaymode:
+    if args.displaymode is not None:
         update_displaymode(host, args.displaymode, address)
     elif args.update_rtc:
         update_rtc(host, address)

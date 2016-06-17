@@ -37,6 +37,7 @@ setup(
         'requests',
         'python-dateutil',
         'apscheduler',
+        'unidecode',
     ],
     tests_require=[
         'nose2',
