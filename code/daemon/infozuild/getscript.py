@@ -5,7 +5,6 @@ from __future__ import print_function
 import argparse
 import datetime
 import logging
-import json
 try:
     from json.decoder import JSONDecodeError as JSONDecodeError
 except ImportError:
@@ -14,14 +13,17 @@ except ImportError:
 import dateutil.parser
 import requests
 
+from .sendscript import Page, Rotation
+
 
 LINE_WIDTH = 32
-TOP_LINE = '----- Komende Activiteiten -----'
+TOP_LINE = '  --- Komende Activiteiten --- %R'
 API_URL = 'https://koala.svsticky.nl/api/activities'
 
 ALIGN_RIGHT = '>' + str(LINE_WIDTH)
 UPDATE_TIME_FORMAT = '%d %B %X'
 ACTIVITY_DATE_FORMAT = '%d %b'
+
 def get_activities():
     '''
     Retrieve upcoming activities and return a list of (name, start_date) tuples.
@@ -112,76 +114,54 @@ def build_when(event, today=None):
 
     return "{} {} ~ {} {}".format(start_date, start_time, end_date, end_time) #7
 
-PAGE_TEMPLATE = {
-    'lines': [
-        "        Welkom bij Sticky:",
-        " Uw bron voor koekjes, koffie en",
-        "        hulp bij practica",
-        "",
-        "Dagelijks geopend van 9-17 uur.",
-        "",
-        "Laatste update:",
-        "  +++ OUT OF CHEESE ERROR +++", # replaced when script is run
-    ],
-    "time": 10012,
-    "blink": 5,
-    "schedular": {
-        "year": 2014,
-        "month": 11,
-        "day": 11,
-        "hours": 14,
-        "minutes": 10,
-        "seconds": 50
-    },
-    "brightness": 2,
-    "scroll": 1,
-    "fading": 0,
-    "moving": {
-        "speed": 10,
-        "width": 2
-    }
-}
+# The template for the first page, as used in make_rotation
+INFO_LINES = [
+    "        Welkom bij Sticky:",
+    " Uw bron voor koekjes, koffie en",
+    "        hulp bij practica",
+    "",
+    "Dagelijks geopend van 9-17 uur.",
+    "",
+    "Laatste update:",
+    "  +++ OUT OF CHEESE ERROR +++", # replaced when script is run
+    ]
 
-def make_pages_dict(limit_activities=-1):
+def make_rotation(limit_activities=-1):
     '''
-    Retrieve activities and build a dict that can be passed to the zuil.
+    Retrieve activities and build a Rotation that can be passed to the sendscript.
     '''
+    rota = Rotation()
+
     activities = get_activities()[0:limit_activities]
     if not activities:
         logging.warning('No activities were retrieved.')
 
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]
-    pages = []
 
-    # Add empty lines if page template has less than 8 lines
-    for _ in range(8 - len(PAGE_TEMPLATE['lines'])):
-        PAGE_TEMPLATE['lines'].append('')
-
-    # Update 'last updated'-time
+    # Update 'last updated' and add first page
     now = format(datetime.datetime.now().strftime(
         UPDATE_TIME_FORMAT), ALIGN_RIGHT)
-    PAGE_TEMPLATE['lines'][-1] = now
+    INFO_LINES[-1] = now
 
-    pages.append(PAGE_TEMPLATE)
+    rota.pages.append(Page(INFO_LINES))
+
+    # Make pages with activities
     for group in activity_groups:
-        newpage = PAGE_TEMPLATE.copy()
-        lines = []
-        lines.append(TOP_LINE)
-        for activity in group:
-            # Activities are (name, date) tuples
-            lines.append(activity[0])
-            lines.append(format(activity[1], ALIGN_RIGHT)) # right-align
-        for _ in range(8 - len(lines)):
-            lines.append('')
-        newpage['lines'] = lines
-        pages.append(newpage)
+        page = Page()
+        page.lines.append(TOP_LINE)
 
-    return {'pages': pages}
+        for activity in group: # activities are (name, date) tuples
+            page.lines.append(activity[0])
+            page.lines.append(format(activity[1], ALIGN_RIGHT))
 
-def make_pages_json(max_activities=-1):
+        rota.pages.append(page)
+
+    return rota
+
+def make_rotation_json(max_activities=-1):
     ''' Convert the pages dict to a json string. '''
-    return json.dumps(make_pages_dict(max_activities))
+    return make_rotation(max_activities).to_json()
 
 def main():
     ''' Console script entry point. '''
@@ -197,7 +177,7 @@ def main():
 
     args = parser.parse_args()
 
-    result = make_pages_json(args.limit)
+    result = make_rotation_json(args.limit)
     if args.output:
         with open(args.output, 'w') as outputfile:
             outputfile.write(result)

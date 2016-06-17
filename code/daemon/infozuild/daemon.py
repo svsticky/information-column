@@ -8,9 +8,7 @@ from os.path import expanduser
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from . import __version__
-from .getscript import make_pages_dict
-from .sendscript import build_controlstring, connect_and_send
+from . import __version__, sendscript, getscript
 
 
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +21,16 @@ JOB_DEFAULTS = {
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
 DEBUGGING = False
 
-def update_zuil(host, controller_address, max_events):
+def update_zuil(host, controller_address, max_events, print_only=True):
     ''' Wrapper method to retrieve events and update the zuil. '''
-    data = make_pages_dict(max_events)
-    controlstring = build_controlstring(data, int(controller_address))
-    connect_and_send(host, controlstring)
+    data = getscript.make_rotation(max_events)
+    data.address = int(controller_address)
+    print(data.to_json())
+    controlstring = data.to_controlstring()
+    if not print_only:
+        sendscript.connect_and_send(host, controlstring)
+    else:
+        print(repr(controlstring.encode()))
 
 def main():
     ''' Console entry point. '''

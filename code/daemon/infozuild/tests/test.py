@@ -5,7 +5,10 @@ import logging
 import unittest
 
 import dateutil.parser
-import infozuild.getscript
+from hypothesis import given
+import hypothesis.strategies as st
+
+import infozuild.getscript, infozuild.sendscript
 from infozuild.getscript import no_secs, ACTIVITY_DATE_FORMAT
 
 class TestNotConnected(unittest.TestCase):
@@ -144,3 +147,10 @@ class TestWhenBuilder(unittest.TestCase):
             "{} {} ~ {} {}".format(
                 start.date().strftime(ACTIVITY_DATE_FORMAT), no_secs(start.time()),
                 end.date().strftime(ACTIVITY_DATE_FORMAT), no_secs(end.time())))
+
+class TestEncoding(unittest.TestCase):
+    ''' Verifies Pages and Rotations behave as specified. '''
+    @given(st.integers(0, 95))
+    def test_encode_is_decode(self, value):
+        self.assertEqual(infozuild.sendscript.decode_value(infozuild.sendscript.encode_value(value)),
+                         value)
