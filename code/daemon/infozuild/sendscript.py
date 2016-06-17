@@ -1,5 +1,3 @@
-
-#! /usr/bin/python
 '''
 Contains the relevant code to generate a controlstring and send it to the zuil.
 '''
