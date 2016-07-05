@@ -27,9 +27,11 @@ ACTIVITY_DATE_FORMAT = '%d %b'
 
 def get_activities():
     '''
-    Retrieve upcoming activities and return a list of (name, start_date) tuples.
-    Return an empty list if events could not be retrieved.
+    Retrieve upcoming activities and return a list of (name, date) tuples.
+
+    Returns an empty list if events could not be retrieved.
     '''
+
     try:
         response = requests.get(API_URL)
     except requests.exceptions.ConnectionError as ex:
@@ -53,31 +55,38 @@ def get_activities():
     return result
 
 def no_secs(time):
-    ''' Remove seconds and force to string because they don't matter '''
+    ''' Force a time object to a string, with the seconds removed. '''
     return time.strftime("%H:%M")
 
 def build_when(event, today=None):
     '''
-    Builds a string that hopefully contains just the right amount of info to
+    Takes an `event` dict, as returned by Koala's API and optionally a datetime `today` (for testing consistency of date parsing).
+
+    Returns a string that hopefully contains just the right amount of info to
     inform the viewer when an event will take place.
-    - start_date will always be present
-    - end_time will never be present without start_time
+
+    * `start_date` will always be present
+    * `end_time` will never be present without `start_time`
 
     The following scenarios are likely:
-     1. end_date absent: legacy event, just show the date
 
-    end_date same as start_date:
-     2. No times: new(er) all-day event, just show the date
-     3. Start_time set, end_time absent:
-         Event without end, show start_time and date if not today
+     1. `end_date` absent: legacy event, just show `start_date`
+
+    `end_date` same as `start_date`:
+
+     2. No times: new(er) all-day event, just show `start_date`
+     3. `start_time` set, `end_time` absent:
+         Event without end, show `start_time` and `start_date` if not today
      4. Both times set:
-         show date (if not today), start_ and end_time.
+         show `start_date` (if not today), `start_time` and `end_time`.
 
-    end_date NOT the same as start_date:
+    `end_date` NOT the same as `start_date`:
+
      5. No times: multi-day all-day event, always show both dates
-     6. Start_time: [s_date] [s_time]~[e_date]
-     7. Both times: [s_date] [s_time]~[e_date] [e_time]
+     6. Start_time: ``start_date start_time~end_date``
+     7. Both times: ``start_date start_time~end_date end_time``
     '''
+
     start = dateutil.parser.parse(event['start_date'])
     start_date = start.date().strftime(ACTIVITY_DATE_FORMAT)
     start_time = no_secs(start)
@@ -115,7 +124,6 @@ def build_when(event, today=None):
 
     return "{} {} ~ {} {}".format(start_date, start_time, end_date, end_time) #7
 
-# The template for the first page, as used in make_rotation
 INFO_LINES = [
     "        Welkom bij Sticky:",
     " Uw bron voor koekjes, koffie en",
@@ -126,10 +134,11 @@ INFO_LINES = [
     "Laatste update:",
     "  +++ OUT OF CHEESE ERROR +++", # replaced when script is run
     ]
+''' The template for the first page, as used in :func:`make_rotation`. '''
 
 def make_rotation(limit_activities=None):
     '''
-    Retrieve activities and build a Rotation that can be passed to the sendscript.
+    Retrieve activities and return a :class:`Rotation` that can be passed to the sendscript.
     '''
     rota = Rotation()
 
@@ -156,6 +165,7 @@ def make_rotation(limit_activities=None):
             lines.append(name)
             lines.append(format(activity[1], ALIGN_RIGHT))
 
+        # Add empty lines until we've got 7 lines, and then page number
         for _ in range(7 - len(lines)):
             lines.append('')
 
@@ -167,11 +177,11 @@ def make_rotation(limit_activities=None):
     return rota
 
 def make_rotation_json(max_activities=None):
-    ''' Convert the pages dict to a json string. '''
+    ''' Convert the :class:`Rotation` returned by :func:`make_rotation` to a json string. '''
     return make_rotation(max_activities).to_json()
 
 def main():
-    ''' Console script entry point. '''
+    ''' :command:`zuil-get` entrypoint. '''
     parser = argparse.ArgumentParser(
         description='Retrieve events from Koala and output in JSON format suitable for the zuil.'
         )

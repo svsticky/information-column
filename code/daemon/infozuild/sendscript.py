@@ -1,5 +1,6 @@
 '''
-Contains the relevant code to generate a controlstring and send it to the zuil.
+Contains the relevant code to generate a controlstring from a list of lines
+and send it to the zuil.
 '''
 import argparse
 import configparser
@@ -19,12 +20,16 @@ def encode_value(value):
     return chr(value + 32)
 
 def decode_value(character):
-    ''' Convert an ascii character to a numeric value. (We probably won't need this.) '''
+    ''' Convert an ascii character to a numeric value. '''
     return ord(character) - 32
 
 def check_in_range(*items):
-    ''' Verify all given arguments are within the given values.
-    Format (name, value, min, max), max inclusive.'''
+    '''
+    Takes a number of (`name`, `value`, `min`, `max`) tuples and verifies
+    that all `min` <= `value` <= `max`.
+
+    Raises a ValueError if any violations are found. Any values after the first error are not checked.
+    '''
     for item in items:
         if item[1] not in range(item[2], item[3]+1):
             raise ValueError('Argument out of range: ', item[0], '=', item[1],
@@ -41,31 +46,38 @@ GS = chr(29)    # Blink
 
 ## Common components of control string
 def start_controlstring(address):
-    ''' Common header. '''
+    ''' Generates the common header. '''
     return SOH + encode_value(address) + FS
 
 ## Controller-level operations.
 class DisplayMode:
-    ''' Sets the display mode (see manual, page 8) of the controller. '''
+    ''' Represents an instruction to set the controller's display mode. '''
 
     # Known values:
-    blank = 0       # Display will blank until restarted or re-enabled. Pages are kept.
-    normal = 1      # Display will operate in normal mode.
-    test_off = 2    # Disables test mode and allows entering of normal pages.
-    test_halt = 3   # Test mode pauses on the visible page. TODO: Does this pause 'normal' pages?
-    test_on = 4     # Enables test mode. Warning: deletes currently stored pages!
-    output = 10     # Toggles, if connected, the output. (No idea if we use this.)
-    modes = [blank, normal, test_off, test_halt, test_on, output]
+    blank = 0
+    '''Display will blank until restarted or re-enabled. Pages are kept.'''
+    normal = 1
+    '''Display will operate in normal mode.'''
+    test_off = 2
+    '''Disables test mode and allows entering of normal pages.'''
+    test_halt = 3
+    '''Test mode pauses on the visible page. This does not pause normal pages.'''
+    test_on = 4
+    '''Enables test mode. Warning: deletes currently stored pages!'''
+    output = 10
+    ''' Toggles, if connected, some kind of hardware output on the controller. (Unused.) '''
+
+    _modes = [blank, normal, test_off, test_halt, test_on, output]
 
     def __init__(self, mode, address=0):
-        ''' Unfortunately trivial. '''
-        if mode not in DisplayMode.modes:
+        ''' Verify that *mode* is valid and set up object. '''
+        if mode not in DisplayMode._modes:
             raise ValueError('Unknown DisplayMode:', mode)
         self.address = int(address)
         self.mode = mode
 
     def to_controlstring(self):
-        ''' Generate a control string from the known mode and given address. '''
+        ''' Generate a control string from the known mode and address. '''
         result = start_controlstring(self.address)
         result += ESC + 'D'
         result += encode_value(self.mode)
@@ -74,7 +86,12 @@ class DisplayMode:
         return result
 
 def set_rtc(address=0, when=None):
-    ''' Generates a controlstring that will set the controller's RTC to the given time. '''
+    '''
+    Generates a controlstring that will set the controller's RTC to the given time and date.
+
+    The RTC can be used in control strings with the special values as documented in Protocol.md.
+    '''
+
     result = start_controlstring(address)
     result += ESC + 'T'
 
@@ -98,24 +115,38 @@ def set_rtc(address=0, when=None):
 
 ## Page-related classes
 class Page:
-    ''' Contains the information for one screenful of text. '''
-    attributes = ['blinkspeed', 'duration', 'schedular', 'brightness',
+    ''' Represents one screenful of text. '''
+    _attributes = ['blinkspeed', 'duration', 'schedular', 'brightness',
                   'scrolling', 'fading']
 
     def __init__(self, lines=None):
         ''' Initialize a new page with the given text-lines and default attributes. '''
-        if lines is not None:
-            self.lines = lines
-        else:
-            self.lines = []
+        self.lines = lines or []
+        ''' List of lines to display. Should contain 8 strings when sending. '''
 
         self.blinkspeed = 1
-        self.duration = 10000 # TODO: define sane defaults
+        '''
+        Controls the duration of the transition to the next page, in half-seconds.
+        0 <= `blinkspeed` <= 4
+        '''
+
+        self.duration = 10000
+        '''
+        Controls how long the controller waits until showing the next page, in milliseconds.
+
+        Because of a quirk in the protocol, the time will be rounded to a multiple of
+        26.7 ms. 0 <= `duration` <= 218450.
+        '''
+
         self.schedular = None
+
         self.brightness = 17
+        ''' Controls the brightness of the leds. 0 <= `brightness` <= 17. '''
+
         self.scrolling = False
+        ''' If set, makes the letters of this page scroll in from above. '''
         self.fading = False
-        # All moving-text attributes are removed, because we can't use them anyway.
+        ''' If set, makes the page's content fade in and out. '''
 
     # Attribute encoding
     def build_duration(self):
@@ -138,7 +169,7 @@ class Page:
         return result
 
     def build_schedular(self):
-        ''' Return 7 characters respresenting the schedular, whatever it may be. '''
+        ''' Return 7 characters respresenting the schedular, whatever it may be. (Unused)'''
         enc = encode_value
 
         sch = self.schedular
@@ -148,7 +179,11 @@ class Page:
 
     # Encoding
     def to_controlstring(self):
-        ''' Convert the page to a controlstring. This string must be used in a rotation! '''
+        '''
+        Convert the page to a controlstring. This string must be used in a :class:`Rotation`!
+
+        Raises a ValueError if any attributes are out of range.
+        '''
         # Validate attributes are valid
         check_in_range(
             ('Line amount', len(self.lines), 0, 8),
@@ -205,7 +240,7 @@ class Page:
             'lines': self.lines,
             }
 
-        for attribute in type(self).attributes:
+        for attribute in type(self)._attributes:
             attr_value = getattr(self, attribute)
             if attr_value:
                 result[attribute] = attr_value
@@ -222,13 +257,13 @@ class Page:
     def from_dict(cls, data):
         ''' Initialize a page from a dict of attributes. '''
         page = cls(data['lines'])
-        for attribute in cls.attributes:
+        for attribute in cls._attributes:
             if attribute in data:
                 setattr(page, attribute, data[attribute])
         return page
 
 class Rotation:
-    ''' Contains the pages that should be displayed, and the controller address. '''
+    ''' Contains a set of :class:`Page`\ s that should be displayed, and the controller address. '''
     def __init__(self, address=0, pages=None):
         ''' Create a new Rotation. '''
         check_in_range(('Controller address', address, 0, 31))
@@ -241,7 +276,7 @@ class Rotation:
 
     # Encoding
     def to_controlstring(self):
-        ''' Convert the rotation to a controlstring that can be sent to the controller. '''
+        ''' Convert the Rotation to a controlstring that can be sent to the controller. '''
         check_in_range(('Address', self.address, 0, 31))
 
         result = start_controlstring(self.address)
@@ -267,18 +302,18 @@ class Rotation:
     # Decoding
     @classmethod
     def from_json(cls, jsonstring):
-        ''' Initialize a rotation from a JSON-string. '''
+        ''' Initialize a Rotation from a JSON-string. '''
         return cls.from_dict(json.loads(jsonstring))
 
     @classmethod
     def from_dict(cls, data):
-        ''' Initialize a rotation from a dict with a list of pages and address. '''
+        ''' Initialize a Rotation from a dict with a list of pages and address. '''
         return cls(data['address'],
                    [Page.from_dict(page) for page in data['pages']])
 
 ## Communication with the zuil
 def connect_and_send(host, controlstring):
-    ''' Open a connection and send the given control string. '''
+    ''' Open a connection to *host* and send the given control string. '''
     logging.info('Connecting to %s', host)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(10)
@@ -294,7 +329,8 @@ def connect_and_send(host, controlstring):
 
 def update_rtc(host, address=0, when=None):
     ''' Generate a control string that will set the controller's RTC to the given time (or
-    the system time if none, and immediately send it to the controller. '''
+    the system time if none), and immediately send it to the controller. '''
+
     logging.info('Starting RTC update.')
     controlstring = set_rtc(address, when)
 
@@ -304,8 +340,7 @@ def update_rtc(host, address=0, when=None):
     logging.info('RTC update complete.')
 
 def update_displaymode(host, mode, address=0):
-    ''' Generate a controlstring that will set the display mode, and immediately send it.
-    '''
+    ''' Generate a controlstring that will set the display mode, and immediately send it. '''
     new_mode = DisplayMode(mode, address)
     controlstring = new_mode.to_controlstring()
 
@@ -316,7 +351,7 @@ def update_displaymode(host, mode, address=0):
 
 ## Script
 def main():
-    ''' zuil-send entrypoint. '''
+    ''' :command:`zuil-send` entrypoint. '''
     config = configparser.ConfigParser()
 
     configdir = os.path.expanduser('~/.infozuil')
@@ -362,7 +397,7 @@ def main():
         script_set_text(args, host, address)
 
 def script_set_text(args, host, address):
-    ''' Update the pages, used in console script. '''
+    ''' Send a new :class:`Rotation` to the zuil. Called from :func:`main`.'''
     if args.file:
         try:
             with open(args.file, 'r') as data_file:
