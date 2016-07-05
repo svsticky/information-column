@@ -1,0 +1,1 @@
+ 0        Welkom bij Sticky:1   de studievereniging voor2 Informatica en Informatiekunde!34Dagelijks geopend van 9-17 uur.5        Kom binnen voor6     koffie en een koekje :)7Geen pagina's geladen.B!A !'&Q1

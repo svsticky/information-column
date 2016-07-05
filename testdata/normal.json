@@ -1,0 +1,34 @@
+{
+  "address": 0,
+  "pages": [
+    {
+      "blinkspeed": 1,
+      "fading": true,
+      "scrolling": false,
+      "brightness": 17,
+      "duration": 10000,
+      "lines": [
+        "        Welkom bij Sticky:",
+        " Uw bron voor koekjes, koffie en",
+        "        hulp bij practica",
+        "",
+        "Dagelijks geopend van 9-17 uur.",
+        "    Dit is een testbericht!",
+        "Laatste update:",
+        "                35 juli 12:34:56"
+      ]
+    },
+    {
+      "lines": [
+        "  --- Komende Activiteiten ---  ",
+        "Vingerverfwedstrijd",
+        "                    39 jul 25:61",
+        "Borrel",
+        "                    29 feb -1:-1",
+        "Koffieraket-workshop",
+        "                    31 apr 12:34",
+        "Testbericht en nep           1/1"
+      ]
+    }
+  ]
+}

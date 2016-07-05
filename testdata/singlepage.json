@@ -1,0 +1,22 @@
+{
+  "address": 0,
+  "pages": [
+    {
+      "blinkspeed": 1,
+      "fading": false,
+      "scrolling": false,
+      "brightness": 17,
+      "duration": 10000,
+      "lines": [
+        "        Welkom bij Sticky:",
+        "   de studievereniging voor",
+        " Informatica en Informatiekunde!",
+        "",
+        "Dagelijks geopend van 9-17 uur.",
+        "        Kom binnen voor",
+        "     koffie en een koekje :)",
+        "Geen pagina's geladen."
+      ]
+    }
+  ]
+}
