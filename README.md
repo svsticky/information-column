@@ -20,29 +20,34 @@ The **information column** is the billboard-like device standing outside Sticky'
 
 ## Future plans
 
-- Include times (and perhaps locations) in the output when Koala outputs it in the API
+- ~~Include times (and perhaps locations) in the output when Koala outputs it in the API~~
+- Show a message on the zuil itself if error occurs (no internet, no activities)
 
 ## Installation
 - Ensure `pip`, `virtualenvwrapper` are installed
 - Create a virtualenv (if not installing system-wide) (`mkvirtualenv -ppython3 infozuil`)
-- Download the release tarball and do `pip install infozuild-x.x.x.tar.gz`. Internet connection is required for automatic downloading of dependencies.
+- `pip install infozuild` for the latest release, or clone the repo and do `python setup.py develop`
 - (Optional) Create `~/.infozuil/daemon.ini` with config overrides (example is TODO)
 - Use one of the methods documented in `config/` to set up the service.
 
-## Usage
-- `zuil-get`: connect to Koala and output a JSON dict readable by `zuil-send`
-	- Optional arguments: `--output` (`-o`): Write JSON to file, not stdout
-	- `--limit`, `-l`: Limit the number of events displayed (0: only title page, -1: all)
-- `zuil-send`: read a JSON dict and send it to the zuil.
-	- Required arguments:
-		- `--file [file]`: File to read
-	- Optional argument:
-		- `--output [file]`: output control string to a file
-- `zuild`: Combines `zuil-get` and `zuil-send`, generally better
+## Console scripts usage
+- `zuil-get`: connect to Koala and output a JSON string readable by `zuil-send`
 	- Optional arguments:
+		- `--limit NUM` (`-l`): Limit the number of events displayed (0: only title page, omitted: all)
+		- `--output` (`-o`): Write JSON to file, not stdout
+- `zuil-send`: read a JSON dict and send it to the zuil.
+	- Optional arguments:
+		- `--verbose` (`-v`): Activate debug logging
+		- `--displaymode MODE`: set a display mode (see docs)
+		- `--file FILE` (`-f`): File with JSON to read (stdin if omitted)
+		- `--output FILE` (`-o`): output control string to a file
+		- `--update-rtc`: update the RTC to the current time (overrides text update)
+- `zuild`: Combines `zuil-get` and `zuil-send`, what actually runs on the zuil.
+	- Optional arguments:
+		- `--verbose` (`-v`): Activate debug logging
+		- `--config FILE`: manually specify a config file (other than `~/.infozuil/daemon.ini`)
+		- `--host HOSTNAME`: override zuil hostname
+		- `--index NUM`: override zuil controller index (which should be always zero as we've only got one controller)
+		- `--interval NUM`: number of minutes to wait between updates
+		- `--limit NUM`: as `zuil-get --limit`
 		- `--once`: update zuil immediately and exit
-		- `--interval`: number of minutes to wait between updates
-		- `--limit`: as `zuil-get --limit`
-		- `--config`: manually specify a config file (other than `~/.infozuil/daemon.ini`)
-		- `--host`: override zuil hostname
-		- `--index`: override zuil controller index (which is always zero as we've only got one controller)
