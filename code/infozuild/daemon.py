@@ -33,8 +33,10 @@ def update_zuil(host, controller_address, max_events, print_only=False):
     logging.debug(repr(controlstring.encode()))
 
 def main():
-    ''' Console entry point. '''
+    ''' :command:`zuild` entry point. '''
     global DEBUGGING
+
+    # Parse command-line arguments
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--version', action='version',
@@ -64,13 +66,16 @@ def main():
 
     logging.debug(args)
 
+    # Read config file(s)
     config = configparser.ConfigParser()
     read_configs = config.read(
         [
             os.path.join(os.path.dirname(__file__), 'daemon.ini'),
             expanduser(args.config)
             ])
+
     logging.debug('Read configs: %s', read_configs)
+
     host = args.host or config['ConnectionInfo']['Server']
     controller_address = args.index or config['ConnectionInfo']['Address']
 
@@ -82,9 +87,10 @@ def main():
     logging.debug('Limit %s, configfile %s', max_events, args.config)
 
     if args.once:
-        update_zuil(host, controller_address, max_events)
+        update_zuil(host, controller_address, max_events) # Will exit after this
 
     else:
+        # Register signal handlers
         signal.signal(signal.SIGTERM, quit_handler_cb)
         signal.signal(signal.SIGINT, quit_handler_cb)
         try:
@@ -92,23 +98,26 @@ def main():
             signal.signal(signal.SIGUSR1, update_now_cb)
             signal.signal(signal.SIGUSR2, toggle_loglevel_cb)
         except ValueError:
-            pass # Windows
+            pass # Unavailable on Windows
+
+        # Register update job
         SCHEDULER.add_job(
             update_zuil, trigger='cron', args=(host, controller_address, max_events),
             minute=update_interval, id='zuild.update')
 
         if not args.verbose:
             logging.getLogger().setLevel(logging.WARNING)
-        SCHEDULER.start()
+        SCHEDULER.start() # Blocking call
 
 def quit_handler_cb(sig, *args):
     ''' Called when SIGINT, SIGTERM or SIGQUIT is received while in daemon mode.
     Attempt to shutdown somewhat cleanly by waiting for the currently executing jobs.'''
+
     logging.info('Shutting down, caught signal %s.', sig)
     SCHEDULER.shutdown()
 
 def update_now_cb(*args):
-    ''' Called on SIGUSR1, immediately update zuil. '''
+    ''' Called on SIGUSR1, add a 'update-zuil'-job scheduled to execute immediately. '''
     job = SCHEDULER.get_job('zuild.update')
     SCHEDULER.add_job(job.func, args=job.args, kwargs=job.kwargs,
                       name='manual_update', id='zuild.manual')

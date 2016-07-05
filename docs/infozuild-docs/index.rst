@@ -13,6 +13,7 @@ Contents:
 
    getscript
    sendscript
+   zuild
 
 Indices and tables
 ==================
