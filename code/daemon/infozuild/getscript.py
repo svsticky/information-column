@@ -127,7 +127,7 @@ INFO_LINES = [
     "  +++ OUT OF CHEESE ERROR +++", # replaced when script is run
     ]
 
-def make_rotation(limit_activities=-1):
+def make_rotation(limit_activities=None):
     '''
     Retrieve activities and build a Rotation that can be passed to the sendscript.
     '''
@@ -166,7 +166,7 @@ def make_rotation(limit_activities=-1):
 
     return rota
 
-def make_rotation_json(max_activities=-1):
+def make_rotation_json(max_activities=None):
     ''' Convert the pages dict to a json string. '''
     return make_rotation(max_activities).to_json()
 
@@ -179,7 +179,7 @@ def main():
         '--output', '-o',
         help='output the resulting JSON not to stdout, but to a file. (File is overwritten)')
     parser.add_argument(
-        '--limit', '-l', type=int, default=-1,
+        '--limit', '-l', type=int, default=None,
         help='limit the number of events displayed.')
 
     args = parser.parse_args()
