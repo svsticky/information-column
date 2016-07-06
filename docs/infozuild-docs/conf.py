@@ -36,7 +36,11 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
 ]
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3.4', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -180,8 +184,9 @@ html_static_path = ['_static']
 # html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#
-# html_sidebars = {}
+
+# https://stackoverflow.com/questions/18969093/how-to-include-the-toctree-in-the-sidebar-of-each-page
+html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'], }
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

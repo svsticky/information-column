@@ -1,5 +1,6 @@
 '''
-Loads the upcoming activities from Koala and outputs them in json.
+The getscript contains the relevant code to load the upcoming activities from
+Koala and extract the relevant information, for display on the zuil.
 '''
 from __future__ import print_function
 import argparse
@@ -27,9 +28,12 @@ ACTIVITY_DATE_FORMAT = '%d %b'
 
 def get_activities():
     '''
-    Retrieve upcoming activities and return a list of (name, date) tuples.
+    Retrieve upcoming activities and parse the received data into the format to
+    be used on the display.
 
-    Returns an empty list if events could not be retrieved.
+    Returns:
+        A list of (*name*, *date*) tuples. This list will be empty if events
+        could not be retrieved.
     '''
 
     try:
@@ -55,36 +59,19 @@ def get_activities():
     return result
 
 def no_secs(time):
-    ''' Force a time object to a string, with the seconds removed. '''
+    ''' Force a :class:`datetime.datetime` to a string, with the seconds removed. '''
     return time.strftime("%H:%M")
 
 def build_when(event, today=None):
     '''
-    Takes an `event` dict, as returned by Koala's API and optionally a datetime `today` (for testing consistency of date parsing).
+    Args:
+        event: a :class:`dict` as returned by Koala's API.
+        today: an optional :class:`datetime.datetime` for testing consistency
+            of date collapsing.
 
-    Returns a string that hopefully contains just the right amount of info to
-    inform the viewer when an event will take place.
-
-    * `start_date` will always be present
-    * `end_time` will never be present without `start_time`
-
-    The following scenarios are likely:
-
-     1. `end_date` absent: legacy event, just show `start_date`
-
-    `end_date` same as `start_date`:
-
-     2. No times: new(er) all-day event, just show `start_date`
-     3. `start_time` set, `end_time` absent:
-         Event without end, show `start_time` and `start_date` if not today
-     4. Both times set:
-         show `start_date` (if not today), `start_time` and `end_time`.
-
-    `end_date` NOT the same as `start_date`:
-
-     5. No times: multi-day all-day event, always show both dates
-     6. Start_time: ``start_date start_time~end_date``
-     7. Both times: ``start_date start_time~end_date end_time``
+    Returns:
+        A string that contains just enough information to inform the viewer
+        when an event will take place.
     '''
 
     start = dateutil.parser.parse(event['start_date'])
@@ -139,12 +126,21 @@ INFO_LINES = [
 def make_rotation(limit_activities=None):
     '''
     Retrieve activities and return a :class:`Rotation` that can be passed to the sendscript.
+
+    Args:
+        limit_activities: an integer specifying the maximum number of events
+            that may be shown. A negative value will remove that many values
+            from the end.
+
+    Returns:
+        A :class:`Rotation` instance containing three events per :class:`Page`,
+        and a title page containting the generation time and date.
     '''
     rota = Rotation()
 
     activities = get_activities()[0:limit_activities]
     if not activities:
-        logging.warning('No activities were retrieved.')
+        logging.warning('No activities were left after limit.')
 
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]

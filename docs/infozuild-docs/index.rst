@@ -14,6 +14,7 @@ Contents:
    getscript
    sendscript
    zuild
+   protocol
 
 Indices and tables
 ==================

@@ -1,7 +1,8 @@
 '''
-Contains the relevant code to generate a controlstring from a list of lines
-and send it to the zuil.
+The sendscript contains the relevant code to generate a controlstring from a
+list of lines and send it to the zuil.
 '''
+
 import argparse
 import configparser
 import datetime
@@ -28,7 +29,9 @@ def check_in_range(*items):
     Takes a number of (`name`, `value`, `min`, `max`) tuples and verifies
     that all `min` <= `value` <= `max`.
 
-    Raises a ValueError if any violations are found. Any values after the first error are not checked.
+    Raises:
+        ValueError if a value that is outside the given range is found. Any
+        additional values are not checked.
     '''
     for item in items:
         if item[1] not in range(item[2], item[3]+1):
@@ -55,29 +58,30 @@ class DisplayMode:
 
     # Known values:
     blank = 0
-    '''Display will blank until restarted or re-enabled. Pages are kept.'''
     normal = 1
-    '''Display will operate in normal mode.'''
     test_off = 2
-    '''Disables test mode and allows entering of normal pages.'''
     test_halt = 3
-    '''Test mode pauses on the visible page. This does not pause normal pages.'''
     test_on = 4
-    '''Enables test mode. Warning: deletes currently stored pages!'''
     output = 10
-    ''' Toggles, if connected, some kind of hardware output on the controller. (Unused.) '''
 
     _modes = [blank, normal, test_off, test_halt, test_on, output]
 
     def __init__(self, mode, address=0):
-        ''' Verify that *mode* is valid and set up object. '''
+        ''' Verify that *mode* is valid and set up a DisplayMode instruction. '''
         if mode not in DisplayMode._modes:
             raise ValueError('Unknown DisplayMode:', mode)
         self.address = int(address)
         self.mode = mode
 
     def to_controlstring(self):
-        ''' Generate a control string from the known mode and address. '''
+        '''
+        Generate a control string from the known mode and address.
+
+        Returns:
+            A string that may be sent to the controller to set the display
+            mode.
+        '''
+
         result = start_controlstring(self.address)
         result += ESC + 'D'
         result += encode_value(self.mode)
@@ -87,7 +91,18 @@ class DisplayMode:
 
 def set_rtc(address=0, when=None):
     '''
-    Generates a controlstring that will set the controller's RTC to the given time and date.
+    Generate an instruction to set the controller's RTC (Real Time Clock) to
+    the given time and date.
+
+    Args:
+        address: an optional integer specifying which controller to update.
+            Should be left on zero.
+        when: an optional :class:`datetime.datetime` instance that contains the
+            new values for the RTC. The system date and time will be used if
+            omitted.
+
+    Returns:
+        A string that may be sent to the controller to update the clock.
 
     The RTC can be used in control strings with the special values as documented in Protocol.md.
     '''
@@ -115,38 +130,47 @@ def set_rtc(address=0, when=None):
 
 ## Page-related classes
 class Page:
-    ''' Represents one screenful of text. '''
+    '''
+    Represents one screenful of text. All attributes may be `None` to inherit
+    the setting used by the previous Page.
+
+    Attributes:
+        lines:
+            a list of strings containing the text to display. Should contain 8
+            strings when sending.
+
+        blinkspeed:
+            an optional integer controlling the duration of the transition to
+            the next page, in half-seconds. 0 <= `blinkspeed` <= 4.
+
+        duration:
+            an optional integer controlling the time the controller waits until
+            advancing to the next page, in milliseconds. Due to a quirk in the
+            encoding, the set value will be rounded to ``floor(duration/26.7)``
+            on sending. 0 <= `duration` <= 218450.
+
+        brightness:
+            an optional integer controlling the brightness of the leds for this
+            page. 0 <= `brightness` <= 17.
+
+        scrolling:
+            A boolean that will, if `True`, make the letters on the page scroll in from above.
+
+        fading:
+            A boolean that will, if `True`, make the contents of the page fade in and out.
+    '''
     _attributes = ['blinkspeed', 'duration', 'schedular', 'brightness',
-                  'scrolling', 'fading']
+                   'scrolling', 'fading']
 
     def __init__(self, lines=None):
-        ''' Initialize a new page with the given text-lines and default attributes. '''
+        ''' Initialize a new page with the given text and default attributes. '''
         self.lines = lines or []
-        ''' List of lines to display. Should contain 8 strings when sending. '''
-
         self.blinkspeed = 1
-        '''
-        Controls the duration of the transition to the next page, in half-seconds.
-        0 <= `blinkspeed` <= 4
-        '''
-
         self.duration = 10000
-        '''
-        Controls how long the controller waits until showing the next page, in milliseconds.
-
-        Because of a quirk in the protocol, the time will be rounded to a multiple of
-        26.7 ms. 0 <= `duration` <= 218450.
-        '''
-
         self.schedular = None
-
         self.brightness = 17
-        ''' Controls the brightness of the leds. 0 <= `brightness` <= 17. '''
-
         self.scrolling = False
-        ''' If set, makes the letters of this page scroll in from above. '''
         self.fading = False
-        ''' If set, makes the page's content fade in and out. '''
 
     # Attribute encoding
     def build_duration(self):
@@ -180,11 +204,15 @@ class Page:
     # Encoding
     def to_controlstring(self):
         '''
-        Convert the page to a controlstring. This string must be used in a :class:`Rotation`!
+        Convert the page to a controlstring.
 
-        Raises a ValueError if any attributes are out of range.
+        Returns:
+            A string that may be included in the controlstring of a :class:`Rotation`.
+        Raises:
+            ValueError if any attributes are out of range.
         '''
-        # Validate attributes are valid
+
+        # Validate attributes
         check_in_range(
             ('Line amount', len(self.lines), 0, 8),
             ('Blink speed', self.blinkspeed, 0, 4),
@@ -240,7 +268,7 @@ class Page:
             'lines': self.lines,
             }
 
-        for attribute in type(self)._attributes:
+        for attribute in self._attributes:
             attr_value = getattr(self, attribute)
             if attr_value:
                 result[attribute] = attr_value
@@ -263,7 +291,18 @@ class Page:
         return page
 
 class Rotation:
-    ''' Contains a set of :class:`Page`\ s that should be displayed, and the controller address. '''
+    '''
+    Contains a set of :class:`Page`\\ s that should be displayed, and the
+    controller address.
+
+    Attributes:
+        pages:
+            A :class:`list` of :class:`Page`\\ s which will be shown in the
+            given order.
+        address:
+            An integer that controls the address of the controller that will be
+            updated, usually zero.
+    '''
     def __init__(self, address=0, pages=None):
         ''' Create a new Rotation. '''
         check_in_range(('Controller address', address, 0, 31))
@@ -329,7 +368,7 @@ def connect_and_send(host, controlstring):
 
 def update_rtc(host, address=0, when=None):
     ''' Generate a control string that will set the controller's RTC to the given time (or
-    the system time if none), and immediately send it to the controller. '''
+    the system time if None), and immediately send it to the controller. '''
 
     logging.info('Starting RTC update.')
     controlstring = set_rtc(address, when)

@@ -1,5 +1,5 @@
 general:
-    build_dir: code/daemon
+    build_dir: code
 
 machine:
     python:
