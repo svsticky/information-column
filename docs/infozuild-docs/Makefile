@@ -15,6 +15,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 ifdef CI
 	# Circle-ci: treat warnings as errors
 	ALLSPHINXOPTS += -W
+	BUILDDIR = $(CIRCLE_ARTIFACTS)/docs
 endif
 
 # the i18n builder cannot share the environment and doctrees with the others

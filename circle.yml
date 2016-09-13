@@ -9,3 +9,4 @@ test:
     post:
         - pip install pylint; pylint infozuild --errors-only
         - pip install sphinx; make -C ../docs/infozuild-docs html
+        - python setup.py sdist -d $CIRCLE_ARTIFACTS/dist
