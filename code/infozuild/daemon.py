@@ -24,7 +24,7 @@ from . import __version__, sendscript, getscript
 logging.basicConfig(level=logging.INFO)
 
 JOB_DEFAULTS = {
-    'coalesce': True,   # If multiple updates have been missed, they can be replaced by a single one.
+    'coalesce': True,   # If multiple updates have been missed, replace with only one.
     'max_instances': 1  # Don't send multiple updates at the same time.
 }
 

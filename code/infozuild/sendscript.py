@@ -67,7 +67,7 @@ class DisplayMode:
     _modes = [blank, normal, test_off, test_halt, test_on, output]
 
     def __init__(self, mode, address=0):
-        ''' Verify that *mode* is valid (:ref:`display_modes`) and set up a DisplayMode instruction. '''
+        ''' Validate *mode* (:ref:`display_modes`) and set up a DisplayMode instruction. '''
         if mode not in DisplayMode._modes:
             raise ValueError('Unknown DisplayMode:', mode)
         self.address = int(address)
