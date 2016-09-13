@@ -30,7 +30,7 @@ def check_in_range(*items):
     that all `min` <= `value` <= `max`.
 
     Raises:
-        ValueError if a value that is outside the given range is found. Any
+        :exc:`ValueError` if a value that is outside the given range is found. Any
         additional values are not checked.
     '''
     for item in items:
@@ -49,7 +49,7 @@ GS = chr(29)    # Blink
 
 ## Common components of control string
 def start_controlstring(address):
-    ''' Generates the common header. '''
+    ''' Generates the common header for control strings. '''
     return SOH + encode_value(address) + FS
 
 ## Controller-level operations.
@@ -67,7 +67,7 @@ class DisplayMode:
     _modes = [blank, normal, test_off, test_halt, test_on, output]
 
     def __init__(self, mode, address=0):
-        ''' Verify that *mode* is valid and set up a DisplayMode instruction. '''
+        ''' Verify that *mode* is valid (:ref:`display_modes`) and set up a DisplayMode instruction. '''
         if mode not in DisplayMode._modes:
             raise ValueError('Unknown DisplayMode:', mode)
         self.address = int(address)
@@ -135,28 +135,28 @@ class Page:
     the setting used by the previous Page.
 
     Attributes:
-        lines:
+        lines (list):
             a list of strings containing the text to display. Should contain 8
             strings when sending.
 
-        blinkspeed:
+        blinkspeed (int):
             an optional integer controlling the duration of the transition to
             the next page, in half-seconds. 0 <= `blinkspeed` <= 4.
 
-        duration:
+        duration (int):
             an optional integer controlling the time the controller waits until
             advancing to the next page, in milliseconds. Due to a quirk in the
             encoding, the set value will be rounded to ``floor(duration/26.7)``
             on sending. 0 <= `duration` <= 218450.
 
-        brightness:
+        brightness (int):
             an optional integer controlling the brightness of the leds for this
             page. 0 <= `brightness` <= 17.
 
-        scrolling:
+        scrolling (bool):
             A boolean that will, if `True`, make the letters on the page scroll in from above.
 
-        fading:
+        fading (bool):
             A boolean that will, if `True`, make the contents of the page fade in and out.
     '''
     _attributes = ['blinkspeed', 'duration', 'schedular', 'brightness',
@@ -209,7 +209,7 @@ class Page:
         Returns:
             A string that may be included in the controlstring of a :class:`Rotation`.
         Raises:
-            ValueError if any attributes are out of range.
+            :exc:`ValueError` if any attributes are out of range.
         '''
 
         # Validate attributes
@@ -296,12 +296,11 @@ class Rotation:
     controller address.
 
     Attributes:
-        pages:
+        pages (list):
             A :class:`list` of :class:`Page`\\ s which will be shown in the
             given order.
-        address:
-            An integer that controls the address of the controller that will be
-            updated, usually zero.
+        address (int):
+            The controller index to update, usually zero.
     '''
     def __init__(self, address=0, pages=None):
         ''' Create a new Rotation. '''
@@ -379,7 +378,14 @@ def update_rtc(host, address=0, when=None):
     logging.info('RTC update complete.')
 
 def update_displaymode(host, mode, address=0):
-    ''' Generate a controlstring that will set the display mode, and immediately send it. '''
+    '''
+    Generate a controlstring that will set the display mode, and immediately send it.
+
+    Args:
+        host (str): Hostname or IP of the controller.
+        mode (int): Display mode to switch to, see :ref:`display_modes`.
+        address (int): Controller index
+    '''
     new_mode = DisplayMode(mode, address)
     controlstring = new_mode.to_controlstring()
 
@@ -436,7 +442,14 @@ def main():
         script_set_text(args, host, address)
 
 def script_set_text(args, host, address):
-    ''' Send a new :class:`Rotation` to the zuil. Called from :func:`main`.'''
+    '''
+    Send a new :class:`Rotation` to the zuil. Called from :func:`main`.
+
+    Args:
+        args (argparse.Namespace): Parsed command line arguments.
+        host (str): Hostname or IP of the controller.
+        address (int): Controller index
+    '''
     if args.file:
         try:
             with open(args.file, 'r') as data_file:

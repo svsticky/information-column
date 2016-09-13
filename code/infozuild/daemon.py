@@ -1,4 +1,14 @@
-''' Daemon that will periodically update the zuil. '''
+'''
+Daemon that will periodically update the zuil.
+
+The daemon uses APScheduler to schedule regular updates, by using the functions
+found in :mod:`infozuild.getscript` and :mod:`infozuild.sendscript` via :func:`update_zuil`.
+
+The following signals will be handled:
+    * SIGUSR1: schedule an update job to be executed immediately.
+    * SIGUSR2: toggle the logging level between INFO and DEBUG.
+    * SIGINT, SIGTERM, SIGQUIT: Cleanly wait for running jobs to end, and stop the daemon.
+'''
 import logging
 import configparser
 import argparse
@@ -14,15 +24,25 @@ from . import __version__, sendscript, getscript
 logging.basicConfig(level=logging.INFO)
 
 JOB_DEFAULTS = {
-    'coalesce': True,
-    'max_instances': 1
+    'coalesce': True,   # If multiple updates have been missed, they can be replaced by a single one.
+    'max_instances': 1  # Don't send multiple updates at the same time.
 }
 
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
 DEBUGGING = False
 
 def update_zuil(host, controller_address, max_events, print_only=False):
-    ''' Wrapper method to retrieve events and update the zuil. '''
+    '''
+    Wrapper method to retrieve events and update the zuil.
+
+    Args:
+        host (str): The hostname or IP address of the controller.
+        controller_address (int): The controller index, usually 0.
+        max_events (int): The maximum number of events to display. -1 to show
+            all.
+        print_only (bool): activate debugging and bypass actually updating the
+            zuil, instead only printing the control string to debug.
+    '''
     data = getscript.make_rotation(max_events)
     data.address = int(controller_address)
     logging.debug(data.to_json())

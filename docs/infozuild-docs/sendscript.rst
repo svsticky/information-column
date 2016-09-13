@@ -20,6 +20,8 @@ Original Replacement
 ``%R``   Hourglass glyph indicating time until next page
 ======== ===============================================
 
+.. _display_modes:
+
 Display modes
 -------------
 The following display modes are listed in the manual:

@@ -1,6 +1,9 @@
 '''
 The getscript contains the relevant code to load the upcoming activities from
 Koala and extract the relevant information, for display on the zuil.
+
+The getscript can be run independently, by using the command
+:command:`zuil-get`, which calls :func:`main`.
 '''
 from __future__ import print_function
 import argparse
@@ -65,9 +68,9 @@ def no_secs(time):
 def build_when(event, today=None):
     '''
     Args:
-        event: a :class:`dict` as returned by Koala's API.
-        today: an optional :class:`datetime.datetime` for testing consistency
-            of date collapsing.
+        event (dict): a dict as returned by Koala's API.
+        today (datetime.datetime): an optional 'now-moment' for testing
+            consistency of date collapsing.
 
     Returns:
         A string that contains just enough information to inform the viewer
@@ -133,8 +136,8 @@ def make_rotation(limit_activities=None):
             from the end.
 
     Returns:
-        A :class:`Rotation` instance containing three events per :class:`Page`,
-        and a title page containting the generation time and date.
+        A :class:`Rotation` containing three events per :class:`Page`, and a
+        title page containting the generation time and date.
     '''
     rota = Rotation()
 
@@ -177,7 +180,12 @@ def make_rotation_json(max_activities=None):
     return make_rotation(max_activities).to_json()
 
 def main():
-    ''' :command:`zuil-get` entrypoint. '''
+    '''
+    :command:`zuil-get` entrypoint.
+
+    :command:`zuil-get` retrieves the current activities, and outputs them in a
+    JSON format parsable by :func:`infozuild.sendscript.Rotation.from_json`.
+    '''
     parser = argparse.ArgumentParser(
         description='Retrieve events from Koala and output in JSON format suitable for the zuil.'
         )
