@@ -8,4 +8,4 @@ machine:
 test:
     post:
         - pip install pylint; pylint infozuild --errors-only
-        - pip install sphinx; make -f docs/infozuild-docs/Makefile html
+        - pip install sphinx; make -C ../docs/infozuild-docs/Makefile html
