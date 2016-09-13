@@ -1,0 +1,22 @@
+{
+  "address": 0,
+  "pages": [
+    {
+      "blinkspeed": 1,
+      "brightness": 17,
+      "duration": 3000,
+	  "fading": false,
+	  "scrolling": true,
+      "lines": [
+        "        Welkom bij Sticky:",
+        " Uw bron voor koekjes, koffie en",
+        "        hulp bij practica",
+        "",
+        "Het is nu: %D-%M %H:%m:%S",
+        "%R %R %R",
+        "Laatste update:",
+        "           13 september 14:58:18"
+      ]
+    }
+  ]
+}
