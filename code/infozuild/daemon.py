@@ -100,7 +100,7 @@ def main():
     controller_address = args.index or config['ConnectionInfo']['Address']
 
     update_interval = '*/{}'.format(args.interval or config['Daemon']['Interval'])
-    max_events = args.limit or config.getint('Daemon', 'MaxEntries')
+    max_events = args.limit or config.getint('Daemon', 'MaxEntries', fallback=None)
 
     logging.debug('Parameters: host %s, index %s, interval %s',
                   host, controller_address, update_interval)
