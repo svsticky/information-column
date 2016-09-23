@@ -1,8 +1,8 @@
 - [x] Create manager with cache of events and error handling functionality
-- [ ] Actually insert the status messages
-- [ ] Add repr to pages, rotations
+- [x] Actually insert the status messages
+- [x] Add repr to pages, rotations
 - [ ] Add status lines to bottoms of pages?
-- [ ] Test error message display
+- [x] Test error message display
 - [ ] Publish modded fortune
 - [ ] Add support for changing normal messages via fortunes
 - [ ] Update docstrings

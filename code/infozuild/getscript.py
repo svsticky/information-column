@@ -26,6 +26,7 @@ TOP_LINE = '  --- Komende Activiteiten ---  '
 API_URL = 'https://koala.svsticky.nl/api/activities'
 
 ALIGN_RIGHT = '>' + str(LINE_WIDTH)
+ALIGN_CENTER = '^' + str(LINE_WIDTH)
 UPDATE_TIME_FORMAT = '%d %B %X'
 ACTIVITY_DATE_FORMAT = '%d %b'
 
@@ -158,12 +159,23 @@ def make_rotation(activities=None, motd=None, limit_activities=None):
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]
 
+    # Make a copy of the default page before modifying it
+    info_lines = INFO_LINES[:]
     # Update 'last updated' and add first page
     now = format(datetime.datetime.now().strftime(
         UPDATE_TIME_FORMAT), ALIGN_RIGHT)
-    INFO_LINES[-1] = now
+    info_lines[-1] = now
 
-    rota.pages.append(Page(INFO_LINES))
+    if motd:
+        status_lines = motd.split('\n')
+        info_lines[4] = format(status_lines[0], ALIGN_CENTER)
+        try:
+            info_lines[5] = format(status_lines[1], ALIGN_CENTER)
+        except IndexError:
+            info_lines[5] = ''
+
+
+    rota.pages.append(Page(info_lines))
 
     # Make pages with activities
     for pageno, group in enumerate(activity_groups):

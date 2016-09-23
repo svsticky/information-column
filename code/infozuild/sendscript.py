@@ -290,6 +290,9 @@ class Page:
                 setattr(page, attribute, data[attribute])
         return page
 
+    def __repr__(self):
+        return json.dumps(self.to_dict(), indent=2)
+
 class Rotation:
     '''
     Contains a set of :class:`Page`\\ s that should be displayed, and the
@@ -348,6 +351,9 @@ class Rotation:
         ''' Initialize a Rotation from a dict with a list of pages and address. '''
         return cls(data['address'],
                    [Page.from_dict(page) for page in data['pages']])
+
+    def __repr__(self):
+        return json.dumps(self.to_dict(), indent=2)
 
 ## Communication with the zuil
 def connect_and_send(host, controlstring):

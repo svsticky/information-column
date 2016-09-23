@@ -44,7 +44,7 @@ class ZuilManager:
     Args:
         host (str): The hostname or IP address of the controller.
         controller_address (int): The controller index, usually 0.
-        max_events (int): The maximum number of events to display. -1 to show
+        max_events (int): The maximum number of events to display. None to show
             all.
         print_only (bool): activate debugging and bypass actually updating the
             zuil, instead only printing the control string to debug.
@@ -60,7 +60,7 @@ class ZuilManager:
         self.print_only = print_only
 
         self.events = []
-        self.status = ''
+        self.status = 'infozuild {}'.format(__version__)
 
     def update_activities(self):
         '''
@@ -70,11 +70,10 @@ class ZuilManager:
         new_events, error = getscript.get_activities()
         if not error:
             self.events = new_events
+        self.status = error # Will clear old error if it is resolved.
 
-        if not self.events:
+        if not self.events and not error:
             self.status = 'Geen activiteiten gevonden.'
-        if error:
-            self.status = error
 
         self.refresh_zuil()
 
@@ -82,19 +81,26 @@ class ZuilManager:
         ''' Immediately update the zuil with a new status message indicating
         the pi is powering off.'''
 
-        self.status = 'De zuil staat nu uit. Voor nieuwe inhoud: stroom uit-aan.'
+        self.status = 'De zuil staat nu uit.\nPower-cycle voor nieuwe inhoud.'
         self.refresh_zuil()
+
+    def make_rotation(self):
+        '''
+        Build the rotation that will be sent to the zuil. Exposed for debugging purposes.
+        '''
+        rota = getscript.make_rotation(self.events, self.status, self.max_events)
+        rota.address = self.controller_address
+        logging.debug(rota.to_json())
+
+        return rota
 
     def refresh_zuil(self):
         '''
         Create a new :class:`Rotation`, populate it with the earlier retrieved
         events, and send it to the controller to be displayed.
         '''
-        rota = getscript.make_rotation(self.events, self.status, self.max_events)
-        rota.address = self.controller_address
-        logging.debug(rota.to_json())
 
-        controlstring = rota.to_controlstring()
+        controlstring = self.make_rotation().to_controlstring()
         if not self.print_only:
             sendscript.connect_and_send(self.host, controlstring)
         logging.debug(repr(controlstring.encode()))
@@ -177,6 +183,9 @@ def main():
 
         if not args.verbose:
             logging.getLogger().setLevel(logging.WARNING)
+
+        # Display version
+        MANAGER.refresh_zuil()
         SCHEDULER.start() # Blocking call
 
 def quit_handler_cb(sig, *args):
