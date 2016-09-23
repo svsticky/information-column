@@ -27,14 +27,18 @@ class TestNotConnected(unittest.TestCase):
         ''' Ensure that no exception is raised if the API cannot be reached. '''
         infozuild.getscript.API_URL = 'http://nope'
         logging.disable(logging.CRITICAL)
-        self.assertEqual(infozuild.getscript.get_activities(), [])
+        result = infozuild.getscript.get_activities()
+        self.assertEqual(result[0], [])
+        self.assertNotEqual(result[1], '')
         logging.disable(logging.NOTSET)
 
     def test_api_weird(self):
         ''' Ensure no exception is raised if the API gives invalid (non-JSON) output. '''
         infozuild.getscript.API_URL = 'https://svsticky.nl'
         logging.disable(logging.ERROR)
-        self.assertEqual(infozuild.getscript.get_activities(), [])
+        result = infozuild.getscript.get_activities()
+        self.assertEqual(result[0], [])
+        self.assertNotEqual(result[1], '')
         logging.disable(logging.NOTSET)
 
 class TestWhenBuilder(unittest.TestCase):

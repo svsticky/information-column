@@ -1,2 +1,9 @@
-- Replace relevant print() calls with logging equivalents
-- Rename constants to allcaps to be more clear in them being constants
+- [x] Create manager with cache of events and error handling functionality
+- [ ] Actually insert the status messages
+- [ ] Add repr to pages, rotations
+- [ ] Add status lines to bottoms of pages?
+- [ ] Test error message display
+- [ ] Publish modded fortune
+- [ ] Add support for changing normal messages via fortunes
+- [ ] Update docstrings
+- [ ] Update documentation: write 'update flow' explaining how an update trigger gets handled.

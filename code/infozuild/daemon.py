@@ -29,11 +29,17 @@ JOB_DEFAULTS = {
 }
 
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
+MANAGER = None
 DEBUGGING = False
 
-def update_zuil(host, controller_address, max_events, print_only=False):
+class ZuilManager:
     '''
-    Wrapper method to retrieve events and update the zuil.
+    The ZuilManager keeps track of what to display on the Zuil, by caching a
+    list of events and responding to update requests.
+
+    Using a manager allows us to not lose all events when Koala cannot be
+    reached, but show an informative message and reuse the old events instead.
+    Shutdown messages and rotating MOTDs are also inserted by the manager.
 
     Args:
         host (str): The hostname or IP address of the controller.
@@ -43,18 +49,60 @@ def update_zuil(host, controller_address, max_events, print_only=False):
         print_only (bool): activate debugging and bypass actually updating the
             zuil, instead only printing the control string to debug.
     '''
-    data = getscript.make_rotation(max_events)
-    data.address = int(controller_address)
-    logging.debug(data.to_json())
-    controlstring = data.to_controlstring()
 
-    if not print_only:
-        sendscript.connect_and_send(host, controlstring)
-    logging.debug(repr(controlstring.encode()))
+    def __init__(self, host, controller_address, max_events, print_only=False):
+        '''
+        On start, save arguments and confirm that we can load the MOTDs.
+        '''
+        self.host = host
+        self.controller_address = int(controller_address)
+        self.max_events = max_events
+        self.print_only = print_only
+
+        self.events = []
+        self.status = ''
+
+    def update_activities(self):
+        '''
+        Attempt to update the cache of events, keep the old events in case of
+        an error, and refresh the display with the possibly new content.
+        '''
+        new_events, error = getscript.get_activities()
+        if not error:
+            self.events = new_events
+
+        if not self.events:
+            self.status = 'Geen activiteiten gevonden.'
+        if error:
+            self.status = error
+
+        self.refresh_zuil()
+
+    def handle_shutdown(self):
+        ''' Immediately update the zuil with a new status message indicating
+        the pi is powering off.'''
+
+        self.status = 'De zuil staat nu uit. Voor nieuwe inhoud: stroom uit-aan.'
+        self.refresh_zuil()
+
+    def refresh_zuil(self):
+        '''
+        Create a new :class:`Rotation`, populate it with the earlier retrieved
+        events, and send it to the controller to be displayed.
+        '''
+        rota = getscript.make_rotation(self.events, self.status, self.max_events)
+        rota.address = self.controller_address
+        logging.debug(rota.to_json())
+
+        controlstring = rota.to_controlstring()
+        if not self.print_only:
+            sendscript.connect_and_send(self.host, controlstring)
+        logging.debug(repr(controlstring.encode()))
 
 def main():
     ''' :command:`zuild` entry point. '''
     global DEBUGGING
+    global MANAGER
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
@@ -106,8 +154,10 @@ def main():
                   host, controller_address, update_interval)
     logging.debug('Limit %s, configfile %s', max_events, args.config)
 
+    MANAGER = ZuilManager(host, controller_address, max_events)
+
     if args.once:
-        update_zuil(host, controller_address, max_events) # Will exit after this
+        MANAGER.update_activities() # Script will exit after this.
 
     else:
         # Register signal handlers
@@ -122,7 +172,7 @@ def main():
 
         # Register update job
         SCHEDULER.add_job(
-            update_zuil, trigger='cron', args=(host, controller_address, max_events),
+            MANAGER.update_activities, trigger='cron',
             minute=update_interval, id='zuild.update')
 
         if not args.verbose:
@@ -134,6 +184,7 @@ def quit_handler_cb(sig, *args):
     Attempt to shutdown somewhat cleanly by waiting for the currently executing jobs.'''
 
     logging.info('Shutting down, caught signal %s.', sig)
+    MANAGER.handle_shutdown()
     SCHEDULER.shutdown()
 
 def update_now_cb(*args):

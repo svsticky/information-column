@@ -35,31 +35,33 @@ def get_activities():
     be used on the display.
 
     Returns:
-        A list of (*name*, *date*) tuples. This list will be empty if events
-        could not be retrieved.
+        A list of (*name*, *date*) tuples and an optional string containing an
+        error code. The list of events will be empty if events could not be
+        retrieved.
     '''
 
     try:
         response = requests.get(API_URL)
     except requests.exceptions.ConnectionError as ex:
         logging.critical('Failed to connect: %s', ex)
-        return []
+        return [], 'Geen verbinding met Koala!'
+
     if response.status_code != 200:
-        logging.error('Could not retrieve activities: %s',
+        logging.error('HTTP error: %s',
                       response.status_code)
         logging.error('Response content: %s', response.text)
-        return []
+        return [], 'HTTP-fout: {}'.format(response.status_code)
 
     try:
         raw_events = response.json()
     except JSONDecodeError:
         logging.error('Invalid API output: %s', response.text)
-        return []
+        return [], 'Onzin binnengekregen!'
     result = []
     for event in raw_events:
         result.append((event['name'], build_when(event)))
 
-    return result
+    return result, ''
 
 def no_secs(time):
     ''' Force a :class:`datetime.datetime` to a string, with the seconds removed. '''
@@ -126,14 +128,19 @@ INFO_LINES = [
     ]
 ''' The template for the first page, as used in :func:`make_rotation`. '''
 
-def make_rotation(limit_activities=None):
+def make_rotation(activities=None, motd=None, limit_activities=None):
     '''
     Retrieve activities and return a :class:`Rotation` that can be passed to the sendscript.
 
     Args:
-        limit_activities: an integer specifying the maximum number of events
-            that may be shown. A negative value will remove that many values
-            from the end.
+        activities (list): a list of events retrieved from Koala, to bypass
+            automatic retrieval in the function itself.
+        motd (str): A status message to be shown on the first page, in the
+            fifth and sixth lines. Will use default if None.
+        limit_activities (int): the maximum number of events that may be shown.
+            A negative value will remove that many values from the end. This
+            value is only applied to automatically retrieved events, manually
+            passed activities via the argument will always be used as-is.
 
     Returns:
         A :class:`Rotation` containing three events per :class:`Page`, and a
@@ -141,9 +148,12 @@ def make_rotation(limit_activities=None):
     '''
     rota = Rotation()
 
-    activities = get_activities()[0:limit_activities]
-    if not activities:
-        logging.warning('No activities were left after limit.')
+    # Retrieve activities if we didn't get pre-retrieved ones.
+    if not activities and activities is not []:
+        activities, _ = get_activities()
+        activities = activities[0:limit_activities]
+        if not activities:
+            logging.warning('No activities were left after limit.')
 
     # Split activities in groups of at most 3
     activity_groups = [activities[i:i+3] for i in range(0, len(activities), 3)]
