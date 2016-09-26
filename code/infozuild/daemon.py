@@ -15,8 +15,10 @@ import argparse
 import signal
 import os.path
 from os.path import expanduser
+import random
 
 from apscheduler.schedulers.blocking import BlockingScheduler
+import fortune
 
 from . import __version__, sendscript, getscript
 
@@ -28,6 +30,9 @@ JOB_DEFAULTS = {
     'max_instances': 1  # Don't send multiple updates at the same time.
 }
 
+FORTUNES = os.path.join(os.path.dirname(__file__), 'motds.txt')
+FORTUNE_FREQUENCY = 0.05
+DEFAULT_STATUS = 'Dagelijks geopend van 9-17 uur.'
 SCHEDULER = BlockingScheduler(job_defaults=JOB_DEFAULTS)
 MANAGER = None
 DEBUGGING = False
@@ -62,6 +67,23 @@ class ZuilManager:
         self.events = []
         self.status = 'infozuild {}'.format(__version__)
 
+        self.fortunes = None
+        try:
+            fortune.make_fortune_data_file(FORTUNES, quiet=True)
+            self.fortunes = FORTUNES
+        except FileNotFoundError:
+            logging.warning('Failed to load status messages.')
+
+    def generate_status(self):
+        ''' Determine what message will be shown as status if no error. '''
+        if self.fortunes and random.random() < FORTUNE_FREQUENCY:
+            try:
+                return fortune.get_random_fortune(self.fortunes)
+            except ValueError:
+                logging.error('Fortune file failed, disabled.')
+                self.fortunes = None
+        return DEFAULT_STATUS
+
     def update_activities(self):
         '''
         Attempt to update the cache of events, keep the old events in case of
@@ -88,7 +110,8 @@ class ZuilManager:
         '''
         Build the rotation that will be sent to the zuil. Exposed for debugging purposes.
         '''
-        rota = getscript.make_rotation(self.events, self.status, self.max_events)
+        rota = getscript.make_rotation(
+            self.events, self.status or self.generate_status(), self.max_events)
         rota.address = self.controller_address
         logging.debug(rota.to_json())
 

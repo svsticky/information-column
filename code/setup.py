@@ -38,6 +38,7 @@ setup(
         'python-dateutil',
         'apscheduler',
         'unidecode',
+        'sv-fortune',
     ],
     tests_require=[
         'nose2',

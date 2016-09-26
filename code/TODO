@@ -3,7 +3,7 @@
 - [x] Add repr to pages, rotations
 - [ ] Add status lines to bottoms of pages?
 - [x] Test error message display
-- [ ] Publish modded fortune
-- [ ] Add support for changing normal messages via fortunes
+- [x] Publish modded fortune
+- [x] Add support for changing normal messages via fortunes
 - [ ] Update docstrings
 - [ ] Update documentation: write 'update flow' explaining how an update trigger gets handled.
