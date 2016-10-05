@@ -104,6 +104,8 @@ datetime that maybe affects the pages in some way. It is currently
 unknown what its function is, and it does not seem to be required. The
 manual describes the schedular on page 6.
 
+.. _timecodes:
+
 Text expansion
 ^^^^^^^^^^^^^^
 
@@ -183,3 +185,4 @@ The format for control strings for setting the display mode is:
         ESC 'D'
         enc(mode)
         FS CR                   # Termination
+

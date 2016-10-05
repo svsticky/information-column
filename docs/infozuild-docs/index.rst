@@ -13,8 +13,11 @@ Contents:
 
    getscript
    sendscript
-   zuild
+   daemon
    protocol
+   zuild
+   zuil-get
+   zuil-send
 
 Indices and tables
 ==================

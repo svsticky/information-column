@@ -1,5 +1,5 @@
 '''
-Daemon that will periodically update the zuil.
+infozuild.daemon provides functions that will periodically update the zuil.
 
 The daemon uses APScheduler to schedule regular updates, by using the functions
 found in :mod:`infozuild.getscript` and :mod:`infozuild.sendscript` via :func:`update_zuil`.
@@ -154,6 +154,8 @@ def main():
                         help='controller ip or hostname')
     parser.add_argument('--index', type=int, default=None,
                         help='controller index')
+    parser.add_argument('--noop', '-n', action='store_true',
+                        help='do not actually send content to the controller')
 
     args = parser.parse_args()
 
@@ -181,9 +183,9 @@ def main():
 
     logging.debug('Parameters: host %s, index %s, interval %s',
                   host, controller_address, update_interval)
-    logging.debug('Limit %s, configfile %s', max_events, args.config)
+    logging.debug('Limit %s, configfile %s, noop %s', max_events, args.config, args.noop)
 
-    MANAGER = ZuilManager(host, controller_address, max_events)
+    MANAGER = ZuilManager(host, controller_address, max_events, args.noop)
 
     if args.once:
         MANAGER.update_activities() # Script will exit after this.
