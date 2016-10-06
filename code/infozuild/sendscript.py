@@ -47,6 +47,20 @@ ESC = chr(27)   # Escape
 FS = chr(28)    # Field Seperator
 GS = chr(29)    # Blink
 
+def blink(text):
+    ''' Enclose the given text with the blink escape code. '''
+    if text:
+        return GS + text + GS
+    else:
+        return ''
+
+def bold(text):
+    ''' Enclose the given text with the bold escape code. '''
+    if text:
+        return SO + text + SO
+    else:
+        return ''
+
 ## Common components of control string
 def start_controlstring(address):
     ''' Generates the common header for control strings. '''

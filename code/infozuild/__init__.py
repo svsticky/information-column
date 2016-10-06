@@ -2,6 +2,6 @@
 import locale
 
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 locale.setlocale(locale.LC_TIME, '') # Will copy environment

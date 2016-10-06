@@ -21,6 +21,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import fortune
 
 from . import __version__, sendscript, getscript
+from .sendscript import blink
 
 
 logging.basicConfig(level=logging.INFO)
@@ -92,7 +93,7 @@ class ZuilManager:
         new_events, error = getscript.get_activities()
         if not error:
             self.events = new_events
-        self.status = error # Will clear old error if it is resolved.
+        self.status = blink(error) # Will clear old error if it is resolved.
 
         if not self.events and not error:
             self.status = 'Geen activiteiten gevonden.'
@@ -103,7 +104,8 @@ class ZuilManager:
         ''' Immediately update the zuil with a new status message indicating
         the pi is powering off.'''
 
-        self.status = 'De zuil staat nu uit.\nPower-cycle voor nieuwe inhoud.'
+        self.status = blink('De zuil staat nu uit.') + '\n' +\
+                      blink('Power-cycle voor nieuwe inhoud.')
         self.refresh_zuil()
 
     def make_rotation(self):
